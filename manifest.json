@@ -1,7 +1,7 @@
 {
   "name": "Jurassic Park Builder",
   "short_name": "JP Builder",
-  "start_url": "/?v=1",
+  "start_url": "/jp-builder/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
