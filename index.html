@@ -1,0 +1,3344 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>JP Builder</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="JP Builder">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+</head>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Press+Start+2P&display=swap');
+:root{
+  --bg:#0b140b;--panel:#0f1c0f;--border:#1e4a1e;
+  --neon:#39ff14;--amber:#ffb300;--red:#ff3333;
+  --blue:#00cfff;--dim:#2e5a2e;--text:#c0e0c0;--purple:#bb44ff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+<script>
+if (!location.search.includes('v=')) {
+  location.replace(location.pathname + '?v=' + Date.now());
+}
+</script>
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none;}
+/* iOS Safari 100vh fix */
+@supports (-webkit-touch-callout: none){body{height:-webkit-fill-available;}}
+#topbar{background:var(--panel);border-bottom:2px solid var(--border);padding:4px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;}
+#logo{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--neon);text-shadow:0 0 8px var(--neon);white-space:nowrap;}
+.res{display:flex;align-items:center;gap:4px;font-size:11px;}
+.res .lbl{color:var(--dim);font-size:10px;}
+.res .val{color:var(--amber);font-weight:bold;min-width:32px;}
+#day-info{margin-left:auto;font-family:'Press Start 2P',monospace;font-size:7px;color:var(--amber);}
+#alert-bar{width:100%;font-size:10px;color:var(--red);min-height:12px;text-align:center;}
+#body{display:flex;flex:1;overflow:hidden;}
+#viewport{flex:1;overflow:hidden;position:relative;background:#0a120a;cursor:grab;}
+#viewport.grabbing{cursor:grabbing;}
+#viewport.building{cursor:crosshair;}
+#viewport.clearing{cursor:cell;}
+#map-canvas{position:absolute;top:0;left:0;display:block;}
+#mini-canvas{position:absolute;bottom:10px;left:10px;border:2px solid var(--border);background:rgba(0,0,0,.8);z-index:10;}
+#panel{width:160px;background:var(--panel);border-left:2px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+#panel-tabs{display:flex;border-bottom:2px solid var(--border);flex-shrink:0;}
+.tab{flex:1;background:transparent;border:none;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:10px;padding:6px 2px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;}
+.tab.active{color:var(--neon);border-bottom-color:var(--neon);}
+#panel-body{flex:1;overflow-y:auto;padding:6px;}
+.p-section{margin-bottom:8px;}
+.p-title{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--neon);margin-bottom:5px;text-shadow:0 0 4px var(--neon);}
+.bld-btn{width:100%;background:#111d11;border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:10px;padding:4px 5px;cursor:pointer;text-align:left;border-radius:2px;margin-bottom:2px;display:flex;align-items:center;gap:5px;transition:border-color .1s,background .1s;}
+.bld-btn:hover:not(:disabled){background:#192a19;border-color:var(--neon);}
+.bld-btn.active{border-color:var(--neon);background:#1a3a1a;color:var(--neon);}
+.bld-btn:disabled{opacity:.28;cursor:default;}
+.bld-btn .bi{font-size:13px;flex-shrink:0;width:17px;text-align:center;}
+.bld-btn .bn{font-size:10px;line-height:1.2;flex:1;}
+.bld-btn .bc{font-size:8px;color:var(--amber);display:block;}
+.stat-row{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;}
+.stat-row .sk{color:var(--dim);}
+.sv.good{color:var(--neon);}.sv.bad{color:var(--red);}.sv.warn{color:var(--amber);}
+.divider{border:none;border-top:1px solid var(--border);margin:5px 0;}
+.res-card{background:#0a1a0a;border:1px solid var(--border);border-radius:2px;padding:5px;margin-bottom:4px;}
+.res-card.done{border-color:var(--neon);opacity:.65;}
+.res-card .rn{font-size:10px;color:var(--text);margin-bottom:2px;}
+.res-card .rd{font-size:8px;color:var(--dim);margin-bottom:3px;line-height:1.5;}
+.res-card .rc{font-size:9px;color:var(--amber);margin-bottom:3px;}
+.res-card button{background:#112211;border:1px solid var(--border);color:var(--neon);font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 6px;cursor:pointer;width:100%;}
+.res-card button:hover:not(:disabled){background:#1a3a1a;}
+.res-card button:disabled{opacity:.3;cursor:default;}
+.mis-card{background:#0a1a0a;border:1px solid var(--border);border-radius:2px;padding:5px;margin-bottom:4px;}
+.mis-card.done{border-color:var(--neon);opacity:.6;}
+.mis-card .mn{font-size:10px;color:var(--text);margin-bottom:2px;}
+.mis-card .md{font-size:8px;color:var(--dim);margin-bottom:2px;line-height:1.5;}
+.mis-card .mr{font-size:9px;color:var(--amber);}
+#info-card{background:#0a160a;border-top:2px solid var(--border);padding:7px;flex-shrink:0;min-height:88px;overflow:hidden;transition:max-height 0.3s ease,padding 0.25s ease,opacity 0.25s ease,border-color 0.25s ease;}
+#info-card.collapsed{max-height:0!important;padding-top:0!important;padding-bottom:0!important;opacity:0;min-height:0!important;border-top-color:transparent;}
+#ic-header{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+#ic-icon{font-size:18px;}
+#ic-name{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--neon);text-shadow:0 0 5px var(--neon);line-height:1.5;}
+#ic-body{font-size:10px;line-height:1.8;}
+#ic-empty{color:var(--dim);font-size:9px;line-height:1.8;text-align:center;padding-top:8px;}
+.ic-row{display:flex;justify-content:space-between;font-size:10px;}
+.ic-row .ik{color:var(--dim);}
+.ic-desc{color:var(--dim);font-size:8px;margin-top:4px;line-height:1.5;border-top:1px solid var(--border);padding-top:4px;}
+#bottom-bar{background:var(--panel);border-top:1px solid var(--border);padding:5px 6px;flex-shrink:0;}
+#next-day-btn{background:#0f2a0f;border:2px solid var(--neon);color:var(--neon);font-family:'Press Start 2P',monospace;font-size:7px;padding:8px;cursor:pointer;width:100%;text-shadow:0 0 5px var(--neon);}
+#next-day-btn:hover{background:var(--neon);color:var(--bg);}
+#log{height:48px;background:#060e06;border-top:2px solid var(--border);overflow-y:auto;padding:3px 8px;font-size:10px;line-height:1.6;flex-shrink:0;}
+.lg{color:var(--dim);}.lg-g{color:var(--neon);}.lg-d{color:var(--red);}.lg-w{color:var(--amber);}.lg-i{color:var(--blue);}
+#tooltip{position:fixed;background:rgba(8,20,8,.96);border:1px solid var(--border);padding:6px 10px;font-size:10px;line-height:1.8;pointer-events:none;z-index:50;display:none;max-width:180px;}
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:16px;text-align:center;padding:24px;}
+#overlay.show{display:flex;}
+#ov-title{font-family:'Press Start 2P',monospace;font-size:18px;}
+.ov-win{color:var(--neon);text-shadow:0 0 20px var(--neon);}
+.ov-lose{color:var(--red);text-shadow:0 0 20px var(--red);}
+#ov-body{font-size:12px;color:#8ab88a;line-height:2.2;white-space:pre-line;max-width:340px;}
+#ov-btn{font-family:'Press Start 2P',monospace;font-size:9px;background:#0f1c0f;border:2px solid var(--neon);color:var(--neon);padding:12px 24px;cursor:pointer;}
+#ov-btn:hover{background:var(--neon);color:var(--bg);}
+.stat-card{background:#0a160a;border:1px solid var(--border);border-radius:3px;padding:6px 7px;margin-bottom:5px;}
+.stat-card-title{font-family:'Press Start 2P',monospace;font-size:5px;color:var(--neon);text-shadow:0 0 4px var(--neon);margin-bottom:6px;letter-spacing:0.5px;}
+.stat-bar-track{width:100%;height:6px;background:#0d1a0d;border-radius:3px;overflow:hidden;border:1px solid var(--border);}
+.stat-bar-fill{height:100%;border-radius:3px;transition:width 0.5s ease;}
+.stat-row2{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.stat-lbl{font-size:9px;color:var(--dim);}
+.stat-val{font-size:10px;font-weight:bold;color:var(--text);}
+.stat-val.good{color:var(--neon);}.stat-val.bad{color:var(--red);}.stat-val.warn{color:var(--amber);}
+/* keep old classes for compatibility */
+.stat-big{font-family:'Press Start 2P',monospace;font-size:13px;color:var(--text);text-align:center;margin:2px 0;}
+.stat-sub{font-size:8px;color:var(--dim);text-align:center;margin-bottom:4px;}
+.stat-bar-wrap{width:100%;height:5px;background:#0f1c0f;border-radius:2px;overflow:hidden;}
+.stat-kpi{text-align:center;flex:1;}
+.stat-kpi-val{font-family:'Share Tech Mono',monospace;font-size:11px;font-weight:bold;}
+.stat-kpi-lbl{font-size:7px;color:var(--dim);margin-top:1px;}
+.ctrl-btn{width:100%;background:#111d11;border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:10px;padding:5px 6px;cursor:pointer;border-radius:2px;margin-bottom:3px;text-align:left;}
+.ctrl-btn:hover{background:#192a19;border-color:var(--neon);}
+.ctrl-btn.danger{border-color:#5a1a1a;color:var(--red);}
+.ctrl-btn.danger:hover{border-color:var(--red);background:#1a0a0a;}
+#pause-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:24px;}
+#pause-overlay.show{display:flex;}
+.pause-menu-btn{font-family:'Press Start 2P',monospace;font-size:8px;background:#0f1c0f;border:2px solid var(--neon);color:var(--neon);padding:12px 32px;cursor:pointer;width:220px;transition:background .1s,color .1s;}
+.pause-menu-btn:hover{background:var(--neon);color:var(--bg);}
+.pause-menu-btn.danger{border-color:var(--red);color:var(--red);}
+.pause-menu-btn.danger:hover{background:var(--red);color:var(--bg);}
+
+/* CONFIRM MODAL */
+#confirm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;align-items:center;justify-content:center;}
+#confirm-modal.show{display:flex;}
+#confirm-box{background:var(--panel);border:2px solid var(--neon);padding:16px;max-width:280px;width:90%;text-align:center;box-shadow:0 0 30px rgba(57,255,20,0.15);}
+#confirm-title{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--neon);text-shadow:0 0 8px var(--neon);margin-bottom:10px;}
+#confirm-preview{display:block;margin:0 auto 10px;border:1px solid var(--border);background:#060e06;}
+#confirm-info{font-size:10px;color:var(--text);line-height:1.9;margin-bottom:10px;text-align:left;border-top:1px solid var(--border);padding-top:8px;}
+#confirm-cost{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--amber);margin-bottom:12px;}
+.confirm-btns{display:flex;gap:8px;}
+.confirm-btns button{flex:1;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px 4px;cursor:pointer;border:2px solid;}
+#confirm-ok{background:#0f2a0f;border-color:var(--neon);color:var(--neon);}
+#confirm-ok:hover{background:var(--neon);color:var(--bg);}
+#confirm-cancel{background:#1a0a0a;border-color:var(--red);color:var(--red);}
+#confirm-cancel:hover{background:var(--red);color:var(--bg);}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <span id="logo">🦕 JP BUILDER</span>
+  <div class="res"><span class="lbl">💰</span><span class="val" id="v-money">$50k</span></div>
+  <div class="res"><span class="lbl">👥</span><span class="val" id="v-vis">0</span><span class="lbl">/g</span></div>
+  <div class="res"><span class="lbl">⚡</span><span class="val" id="v-pow">0</span><span class="lbl">/</span><span id="v-pneed" style="color:var(--amber)">0</span></div>
+  <div class="res"><span class="lbl">🔒</span><span class="val" id="v-sec">0</span></div>
+  <div class="res"><span class="lbl">🔬</span><span class="val" id="v-rp" style="color:var(--purple)">0</span></div>
+  <span id="day-info">G.1</span>
+  <span id="weather-info" style="font-size:14px;margin-left:4px;" title="Meteo">☀️</span>
+  <button id="menu-btn" style="margin-left:auto;background:#0f2a0f;border:1px solid var(--neon);color:var(--neon);font-family:'Share Tech Mono',monospace;font-size:11px;padding:4px 10px;cursor:pointer;border-radius:2px;">⏸ MENU</button>
+  <div id="alert-bar"></div>
+</div>
+<div id="body">
+  <div id="viewport">
+    <canvas id="map-canvas"></canvas>
+    <canvas id="mini-canvas" width="110" height="82"></canvas>
+  </div>
+  <div id="panel">
+    <div id="panel-tabs">
+      <button class="tab active" data-tab="build">🏗</button>
+      <button class="tab" data-tab="research">🔬</button>
+      <button class="tab" data-tab="missions">🎯</button>
+      <button class="tab" data-tab="stats">📊</button>
+    </div>
+    <div id="panel-body">
+      <div id="tab-build">
+        <div class="p-section">
+          <div class="p-title">STRUMENTI</div>
+          <button class="bld-btn active" data-b="demolish"><span class="bi">🗑</span><span class="bn">DEMOLISCI<span class="bc">gratis</span></span></button>
+          <button class="bld-btn" data-b="clear"><span class="bi">🪓</span><span class="bn">ABBATTI<span class="bc">$300</span></span></button>
+          <button class="bld-btn" data-b="road"><span class="bi">🛤</span><span class="bn">STRADA<span class="bc">$200</span></span></button>
+        </div>
+        <div class="p-section">
+          <div class="p-title">INFRASTRUTTURE</div>
+          <button class="bld-btn" data-b="power"><span class="bi">⚡</span><span class="bn">CENTRALE<span class="bc">$6,000</span></span></button>
+          <button class="bld-btn" data-b="solar"><span class="bi">☀️</span><span class="bn">PANNELLI<span class="bc">$3,000</span></span></button>
+          <button class="bld-btn" data-b="fence"><span class="bi">🔌</span><span class="bn">RECINTO EL.<span class="bc">$1,500</span></span></button>
+          <button class="bld-btn" data-b="watchtower"><span class="bi">🗼</span><span class="bn">TORRE<span class="bc">$4,000</span></span></button>
+        </div>
+        <div class="p-section">
+          <div class="p-title">DINOSAURI</div>
+          <button class="bld-btn" data-b="raptor"><span class="bi">🦖</span><span class="bn">RAPTOR<span class="bc">$8,000</span></span></button>
+          <button class="bld-btn" data-b="trex"><span class="bi">🦖</span><span class="bn">T-REX<span class="bc">$18,000</span></span></button>
+          <button class="bld-btn" data-b="brachio"><span class="bi">🦕</span><span class="bn">BRACHIO<span class="bc">$7,000</span></span></button>
+          <button class="bld-btn" data-b="ptero"><span class="bi">🦤</span><span class="bn">PTEROSAURI<span class="bc">$12,000</span></span></button>
+          <button class="bld-btn" data-b="trice"><span class="bi">🦏</span><span class="bn">TRICERATOPS<span class="bc">$9,000</span></span></button>
+          <button class="bld-btn" data-b="spino"><span class="bi">🐊</span><span class="bn">SPINOSAURO<span class="bc">$22,000</span></span></button>
+          <button class="bld-btn" data-b="ankylo"><span class="bi">🐢</span><span class="bn">ANKYLOSAURUS<span class="bc">$11,000</span></span></button>
+          <button class="bld-btn" data-b="diloph"><span class="bi">🦎</span><span class="bn">DILOFOSAURO<span class="bc">$10,000</span></span></button>
+          <button class="bld-btn" data-b="mosaw"><span class="bi">🌊</span><span class="bn">MOSASAURO<span class="bc">$25,000</span></span></button>
+          <button class="bld-btn" data-b="galli"><span class="bi">🐎</span><span class="bn">GALLIMIMUS<span class="bc">$11,000</span></span></button>
+          <button class="bld-btn" data-b="para"><span class="bi">🦕</span><span class="bn">PARASAURO<span class="bc">$9,500</span></span></button>
+          <button class="bld-btn" data-b="stego"><span class="bi">🦕</span><span class="bn">STEGOSAURO<span class="bc">$13,000</span></span></button>
+        </div>
+        <div class="p-section">
+          <div class="p-title">SERVIZI</div>
+          <button class="bld-btn" data-b="visitor"><span class="bi">🏛</span><span class="bn">CENTRO VIS.<span class="bc">$20,000</span></span></button>
+          <button class="bld-btn" data-b="hotel"><span class="bi">🏨</span><span class="bn">HOTEL<span class="bc">$12,000</span></span></button>
+          <button class="bld-btn" data-b="restaurant"><span class="bi">🍽</span><span class="bn">RISTORANTE<span class="bc">$5,000</span></span></button>
+          <button class="bld-btn" data-b="shop"><span class="bi">🛍</span><span class="bn">NEGOZIO<span class="bc">$3,000</span></span></button>
+          <button class="bld-btn" data-b="lab"><span class="bi">🧬</span><span class="bn">LABORATORIO<span class="bc">$15,000</span></span></button>
+          <button class="bld-btn" data-b="infirmary"><span class="bi">🏥</span><span class="bn">INFERMERIA<span class="bc">$8,000</span></span></button>
+          <button class="bld-btn" data-b="workshop"><span class="bi">🔧</span><span class="bn">OFFICINA<span class="bc">$10,000</span></span></button>
+          <button class="bld-btn" data-b="jeep"><span class="bi">🚙</span><span class="bn">TOUR JEEP<span class="bc">$9,000</span></span></button>
+          <button class="bld-btn" data-b="ranger"><span class="bi">🪖</span><span class="bn">RANGER STAT.<span class="bc">$14,000</span></span></button>
+          <button class="bld-btn" data-b="helipad"><span class="bi">🚁</span><span class="bn">ELIPORTO<span class="bc">$8,000</span></span></button>
+        </div>
+        <div class="p-section">
+          <div class="p-title">DECORAZIONI</div>
+          <button class="bld-btn" data-b="park"><span class="bi">🌳</span><span class="bn">PARCO VERDE<span class="bc">$1,000</span></span></button>
+          <button class="bld-btn" data-b="fountain"><span class="bi">⛲</span><span class="bn">FONTANA<span class="bc">$2,500</span></span></button>
+          <button class="bld-btn" data-b="statue"><span class="bi">🗿</span><span class="bn">STATUA JP<span class="bc">$5,000</span></span></button>
+          <button class="bld-btn" data-b="bench"><span class="bi">🪑</span><span class="bn">PANCHINE<span class="bc">$500</span></span></button>
+        </div>
+      </div>
+      <div id="tab-research" style="display:none">
+        <div class="p-section">
+          <div class="p-title">RP: <span id="rp-val" style="color:var(--purple)">0</span></div>
+          <div style="font-size:9px;color:var(--dim);margin-bottom:6px">Laboratori = +RP/giorno</div>
+          <div id="research-list"></div>
+        </div>
+      </div>
+      <div id="tab-missions" style="display:none">
+        <div class="p-section">
+          <div class="p-title">MISSIONI</div>
+          <div id="missions-list"></div>
+        </div>
+      </div>
+      <div id="tab-stats" style="display:none">
+
+        <!-- OBIETTIVO -->
+        <div class="stat-card">
+          <div class="stat-card-title">🎯 OBIETTIVO PARCO</div>
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:4px;margin:4px 0 2px;">
+            <span id="sv-vis" style="font-family:'Press Start 2P',monospace;font-size:16px;color:var(--neon);">0</span>
+            <span style="font-size:9px;color:var(--dim);">/ 1000 vis</span>
+          </div>
+          <div class="stat-bar-track"><div class="stat-bar-fill" id="bar-vis" style="width:0%;background:var(--neon);"></div></div>
+          <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:8px;">
+            <span style="color:var(--dim);">Progresso</span>
+            <span id="sv-prog" style="color:var(--neon);font-weight:bold;">0%</span>
+          </div>
+        </div>
+
+        <!-- FINANZE -->
+        <div class="stat-card">
+          <div class="stat-card-title">💰 FINANZE GIORNALIERE</div>
+          <div class="stat-row2"><span class="stat-lbl">📈 Entrate</span><span id="sv-inc" class="stat-val good">+$0</span></div>
+          <div class="stat-row2"><span class="stat-lbl">📉 Costi</span><span id="sv-cost" class="stat-val bad">-$0</span></div>
+          <div style="border-top:1px solid var(--border);margin:4px 0 3px;"></div>
+          <div class="stat-row2">
+            <span class="stat-lbl" style="color:var(--text);font-weight:bold;">💵 Utile/g</span>
+            <span id="sv-net" class="stat-val good" style="font-size:11px;font-weight:bold;">$0</span>
+          </div>
+        </div>
+
+        <!-- ENERGIA -->
+        <div class="stat-card">
+          <div class="stat-card-title">⚡ ENERGIA</div>
+          <div class="stat-row2" style="margin-bottom:3px;"><span class="stat-lbl">Prodotta</span><span id="sv-pow-gen" class="stat-val" style="color:var(--blue);">0</span></div>
+          <div class="stat-row2" style="margin-bottom:4px;"><span class="stat-lbl">Richiesta</span><span id="sv-pow-need" class="stat-val">0</span></div>
+          <div class="stat-bar-track"><div class="stat-bar-fill" id="bar-pow" style="width:0%;background:var(--blue);"></div></div>
+          <div style="text-align:right;font-size:8px;color:var(--dim);margin-top:2px;" id="sv-pow">0/0</div>
+        </div>
+
+        <!-- SICUREZZA + SODDISFAZIONE -->
+        <div style="display:flex;gap:4px;margin-bottom:5px;">
+          <div class="stat-card" style="flex:1;margin-bottom:0;">
+            <div class="stat-card-title">🔒 SIC.</div>
+            <div id="sv-sec2" style="font-family:'Press Start 2P',monospace;font-size:13px;text-align:center;margin:3px 0 1px;color:var(--neon);">0</div>
+            <div class="stat-bar-track"><div class="stat-bar-fill" id="bar-sec" style="width:50%;background:var(--neon);"></div></div>
+            <div id="sv-sec-label" style="font-size:7px;color:var(--dim);text-align:center;margin-top:2px;">Stabile</div>
+          </div>
+          <div class="stat-card" style="flex:1;margin-bottom:0;">
+            <div class="stat-card-title">😊 SODD.</div>
+            <div id="sv-sat" style="font-family:'Press Start 2P',monospace;font-size:13px;text-align:center;margin:3px 0 1px;color:#ff9900;">—</div>
+            <div class="stat-bar-track"><div class="stat-bar-fill" id="bar-sat" style="width:0%;background:#ff9900;"></div></div>
+            <div id="sv-sat-label" style="font-size:7px;color:var(--dim);text-align:center;margin-top:2px;">—</div>
+          </div>
+        </div>
+
+        <!-- RECINTI -->
+        <div class="stat-card" id="enc-energy-card">
+          <div class="stat-card-title">🔋 ENERGIA RECINTI</div>
+          <div id="enc-energy-list"></div>
+        </div>
+
+        <!-- GRAFICO -->
+        <div class="stat-card">
+          <div class="stat-card-title">📈 ANDAMENTO (ultimi 40g)</div>
+          <canvas id="chart-canvas" width="136" height="64" style="display:block;margin-top:4px;background:#060e06;border-radius:2px;width:100%;"></canvas>
+          <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:8px;">
+            <span style="color:var(--neon);">● Visitatori</span>
+            <span style="color:var(--amber);">● Utile/g</span>
+          </div>
+        </div>
+
+        <!-- RIEPILOGO -->
+        <div class="stat-card">
+          <div class="stat-card-title">🏗 RIEPILOGO PARCO</div>
+          <div class="stat-row2"><span class="stat-lbl">Edifici totali</span><span id="sv-bld" class="stat-val">0</span></div>
+          <div class="stat-row2"><span class="stat-lbl">Recinti dino</span><span id="sv-enc" class="stat-val">0</span></div>
+          <div class="stat-row2"><span class="stat-lbl">RP accumulati</span><span id="sv-rp2" class="stat-val" style="color:var(--purple);">0</span></div>
+          <div class="stat-row2"><span class="stat-lbl">Giorno</span><span id="sv-day" class="stat-val" style="color:var(--amber);">1</span></div>
+        </div>
+
+        <!-- CONTROLLI -->
+        <div class="stat-card">
+          <div class="stat-card-title">🖱 CONTROLLI</div>
+          <div style="font-size:9px;color:var(--dim);line-height:2.1;">
+            <b style="color:var(--text);">Click</b> — costruisci<br>
+            <b style="color:var(--text);">Tasto dx</b> — demolisci<br>
+            <b style="color:var(--text);">Trascina</b> — scorri mappa<br>
+            <b style="color:var(--text);">Rotella</b> — zoom<br>
+            <b style="color:var(--text);">ESC</b> — pausa
+          </div>
+          <button class="ctrl-btn danger" id="btn-reset" style="margin-top:6px;">⚠ Nuova partita</button>
+        </div>
+
+      </div>
+    </div>
+    <div id="info-card">
+      <div id="ic-inner" style="display:none">
+        <div id="ic-header"><span id="ic-icon"></span><span id="ic-name"></span></div>
+        <div id="ic-body"></div>
+      </div>
+      <div id="ic-empty">Seleziona uno<br>strumento</div>
+    </div>
+    <div id="bottom-bar">
+      <button id="next-day-btn">▶ GIORNO SUCCESSIVO</button>
+      <div style="display:flex;gap:4px;margin-top:4px;">
+        <button class="ctrl-btn" id="auto-btn" style="flex:1;text-align:center;font-size:9px;">⏩ AUTO: OFF</button>
+        <button class="ctrl-btn" id="speed-btn" style="width:44px;text-align:center;font-size:9px;">1×</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="log"></div>
+<div id="tooltip"></div>
+<div id="overlay">
+  <div id="ov-title"></div>
+  <div id="ov-body"></div>
+  <button id="ov-btn">▶ RIGIOCA</button>
+</div>
+<div id="pause-overlay">
+  <div style="font-family:'Press Start 2P',monospace;font-size:14px;color:var(--neon);text-shadow:0 0 16px var(--neon);margin-bottom:8px;">⏸ PAUSA</div>
+  <div style="font-size:11px;color:var(--dim);margin-bottom:12px;" id="pause-day-info"></div>
+  <button class="pause-menu-btn" id="pm-resume">▶ RIPRENDI</button>
+  <button class="pause-menu-btn" id="pm-save">💾 SALVA PARTITA</button>
+  <button class="pause-menu-btn" id="pm-load">📂 CARICA PARTITA</button>
+  <button class="pause-menu-btn danger" id="pm-restart">⚠ NUOVA PARTITA</button>
+  <div id="pm-msg" style="font-size:10px;color:var(--neon);min-height:16px;margin-top:4px;"></div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirm-modal">
+  <div id="confirm-box">
+    <div id="confirm-title">CONFERMA COSTRUZIONE</div>
+    <canvas id="confirm-preview" width="120" height="120"></canvas>
+    <div id="confirm-info"></div>
+    <div id="confirm-cost"></div>
+    <div class="confirm-btns">
+      <button id="confirm-ok">✓ COSTRUISCI</button>
+      <button id="confirm-cancel">✗ ANNULLA</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// NOTE: 'use strict' intentionally omitted to avoid Safari/iOS issues
+// with function declarations in nested blocks (isRoadN fix applied below)
+
+// ── TILE IDs ──
+var T_EMPTY=0,T_JUNGLE=1,T_CLEAR=2,T_ROAD=3,
+    T_FENCE=4,T_GATE=5,T_POWER=6,T_SOLAR=7,T_WATCH=8,
+    T_RAPTOR=9,T_TREX=10,T_BRACHIO=11,T_PTERO=12,T_TRICE=13,T_SPINO=14,
+    T_ANKYLO=15,T_DILOPH=16,T_MOSAW=17,
+    T_HOTEL=18,T_REST=19,T_SHOP=20,T_LAB=21,T_PARK=22,T_HELI=23,
+    T_VISITOR=24,T_INFIRMARY=25,T_FOUNTAIN=26,T_STATUE=27,T_BENCH=28,
+    T_WORKSHOP=29,T_JEEP=30,
+    T_GALLI=31,T_PARA=32,T_STEGO=33,
+    T_RANGER=34,
+    T_OCEAN=50; // non-buildable ocean border
+
+var DINO_MIN=T_RAPTOR, DINO_MAX=T_STEGO;
+
+var BD = {
+  demolish: {id:T_EMPTY, cost:0,     lbl:'Demolisci',      icon:'🗑', pw:0,   sec:0,  vis:0,  sat:0,  maint:0,   rp:0, road:false, sz:0},
+  clear:    {id:T_CLEAR, cost:300,   lbl:'Abbatti alberi', icon:'🪓', pw:0,   sec:0,  vis:0,  sat:0,  maint:0,   rp:0, road:false, sz:0},
+  road:     {id:T_ROAD,  cost:200,   lbl:'Strada',         icon:'🛤', pw:0,   sec:0,  vis:0,  sat:0,  maint:0,   rp:0, road:false, sz:0},
+  gate:     {id:T_GATE,  cost:3000,  lbl:'Cancello',       icon:'🚪', pw:-1,  sec:2,  vis:10, sat:5,  maint:60,  rp:0, road:true,  sz:0},
+  power:    {id:T_POWER, cost:6000,  lbl:'Centrale',       icon:'⚡', pw:15,  sec:0,  vis:0,  sat:0,  maint:120, rp:0, road:true,  sz:0, bw:2, bh:1},
+  solar:    {id:T_SOLAR, cost:3000,  lbl:'Pannelli Solari',icon:'☀️',pw:6,   sec:0,  vis:0,  sat:2,  maint:30,  rp:0, road:true,  sz:0},
+  fence:    {id:T_FENCE, cost:1500,  lbl:'Recinto Elett.', icon:'🔌', pw:-1,  sec:3,  vis:0,  sat:0,  maint:40,  rp:0, road:false, sz:0},
+  watchtower:{id:T_WATCH,cost:4000,  lbl:'Torre Guardia',  icon:'🗼', pw:-1,  sec:5,  vis:0,  sat:0,  maint:80,  rp:0, road:true,  sz:0},
+  raptor:   {id:T_RAPTOR,cost:8000,  lbl:'Raptor Pen',     icon:'🦖', pw:-2,  sec:-2, vis:25, sat:10, maint:180, rp:0, road:true,  sz:2, dino:'🦖', color:'#2a1a08', danger:true},
+  trex:     {id:T_TREX,  cost:18000, lbl:'T-Rex Paddock',  icon:'🦖', pw:-4,  sec:-3, vis:60, sat:20, maint:350, rp:0, road:true,  sz:3, dino:'🦖', color:'#3a2808', danger:true},
+  brachio:  {id:T_BRACHIO,cost:7000, lbl:'Brachiosauro',   icon:'🦕', pw:-2,  sec:0,  vis:20, sat:8,  maint:120, rp:0, road:true,  sz:3, dino:'🦕', color:'#1a3818', danger:false},
+  ptero:    {id:T_PTERO, cost:12000, lbl:'Aviario Ptero.', icon:'🦤', pw:-3,  sec:-1, vis:35, sat:15, maint:240, rp:0, road:true,  sz:2, dino:'🦤', color:'#0a1a30', danger:true},
+  trice:    {id:T_TRICE, cost:9000,  lbl:'Triceratops',    icon:'🦏', pw:-2,  sec:0,  vis:28, sat:10, maint:150, rp:0, road:true,  sz:2, dino:'🦏', color:'#182818', danger:false},
+  spino:    {id:T_SPINO, cost:22000, lbl:'Spinosauro',     icon:'🐊', pw:-5,  sec:-4, vis:75, sat:25, maint:480, rp:0, road:true,  sz:3, dino:'🐊', color:'#2a1208', danger:true},
+  ankylo:   {id:T_ANKYLO,cost:11000, lbl:'Ankylosaurus',   icon:'🐢', pw:-2,  sec:1,  vis:30, sat:12, maint:160, rp:0, road:true,  sz:2, dino:'🐢', color:'#1a2a1a', danger:false},
+  diloph:   {id:T_DILOPH,cost:10000, lbl:'Dilofosauro',    icon:'🦎', pw:-2,  sec:-2, vis:32, sat:12, maint:190, rp:1, road:true,  sz:2, dino:'🦎', color:'#0a1a20', danger:true},
+  mosaw:    {id:T_MOSAW, cost:25000, lbl:'Vasca Mosasauro',icon:'🌊', pw:-4,  sec:-1, vis:65, sat:30, maint:550, rp:0, road:true,  sz:3, dino:'🌊', color:'#0a2040', danger:false},
+  hotel:    {id:T_HOTEL, cost:12000, lbl:'Hotel',          icon:'🏨', pw:-2,  sec:0,  vis:30, sat:15, maint:180, rp:0, road:true,  sz:0, bw:2, bh:2},
+  restaurant:{id:T_REST, cost:5000,  lbl:'Ristorante',     icon:'🍽', pw:-1,  sec:0,  vis:10, sat:20, maint:90,  rp:0, road:true,  sz:0},
+  shop:     {id:T_SHOP,  cost:3000,  lbl:'Negozio',        icon:'🛍', pw:-1,  sec:0,  vis:8,  sat:10, maint:50,  rp:0, road:true,  sz:0},
+  lab:      {id:T_LAB,   cost:15000, lbl:'Laboratorio',    icon:'🧬', pw:-2,  sec:8,  vis:0,  sat:5,  maint:240, rp:2, road:true,  sz:0, bw:2, bh:2},
+  park:     {id:T_PARK,  cost:1000,  lbl:'Parco Verde',    icon:'🌳', pw:0,   sec:0,  vis:5,  sat:15, maint:20,  rp:0, road:true,  sz:0},
+  helipad:  {id:T_HELI,    cost:8000,  lbl:'Eliporto',         icon:'🚁', pw:-2,  sec:3,  vis:20, sat:5,  maint:120, rp:0, road:true,  sz:0, bw:2, bh:2},
+  visitor:  {id:T_VISITOR, cost:20000, lbl:'Centro Visitatori',icon:'🏛', pw:-3,  sec:2,  vis:60, sat:25, maint:300, rp:1, road:true,  sz:0, bw:2, bh:2},
+  infirmary:{id:T_INFIRMARY,cost:8000, lbl:'Infermeria',       icon:'🏥', pw:-1,  sec:4,  vis:5,  sat:20, maint:120, rp:1, road:true,  sz:0, cureRange:14, cureSpeed:2},
+  fountain: {id:T_FOUNTAIN,cost:2500,  lbl:'Fontana',          icon:'⛲', pw:0,   sec:0,  vis:8,  sat:18, maint:25,  rp:0, road:false, sz:0},
+  statue:   {id:T_STATUE,  cost:5000,  lbl:'Statua JP',        icon:'🗿', pw:0,   sec:0,  vis:12, sat:10, maint:12,  rp:0, road:false, sz:0},
+  bench:    {id:T_BENCH,    cost:500,   lbl:'Panchine',         icon:'🪑', pw:0,   sec:0,  vis:2,  sat:8,  maint:6,   rp:0, road:false, sz:0},
+  workshop: {id:T_WORKSHOP, cost:10000, lbl:'Officina',         icon:'🔧', pw:-2,  sec:1,  vis:0,  sat:0,  maint:180, rp:0, road:true,  sz:0, repairRange:8, repairPerDay:25, repairCost:200},
+  jeep:     {id:T_JEEP,    cost:9000,  lbl:'Tour Jeep',        icon:'🚙', pw:-1,  sec:1,  vis:30, sat:20, maint:150, rp:0, road:true,  sz:0, bw:2, bh:1},
+  ranger:   {id:T_RANGER,  cost:14000, lbl:'Ranger Station',   icon:'🪖', pw:-2,  sec:4,  vis:5,  sat:8,  maint:200, rp:0, road:true,  sz:0, bw:2, bh:2, catchRange:10, catchPerDay:2},
+  galli:    {id:T_GALLI,   cost:11000, lbl:'Gallimimus',       icon:'🐎', pw:-2,  sec:0,  vis:35, sat:18, maint:190, rp:1, road:true,  sz:3, dino:'🐎', color:'#2a3818', danger:false, herd:true},
+  para:     {id:T_PARA,    cost:9500,  lbl:'Parasaurolophus',  icon:'🦕', pw:-2,  sec:0,  vis:28, sat:14, maint:140, rp:0, road:true,  sz:2, dino:'🦕', color:'#1e3020', danger:false},
+  stego:    {id:T_STEGO,   cost:13000, lbl:'Stegosauro',       icon:'🦕', pw:-3,  sec:1,  vis:40, sat:16, maint:210, rp:0, road:true,  sz:3, dino:'🦕', color:'#243020', danger:false},
+};
+
+var ID2K = {};
+for (var _k in BD) { if (_k!=='demolish'&&_k!=='clear') ID2K[BD[_k].id]=_k; }
+
+var TOOL_DESC = {
+  demolish:'Rimuove qualsiasi edificio. Il terreno torna libero.',
+  clear:'Abbatte la giungla per liberare il terreno.',
+  road:'Collega gli edifici. La maggior parte richiede una strada adiacente.',
+  gate:'Ingresso del parco. Necessario per far entrare i visitatori.',
+  power:'Genera energia. Senza energia i recinti non funzionano.',
+  solar:'Energia rinnovabile, meno potente della centrale.',
+  fence:'Recinto elettrico. Non richiede strada. Aumenta la sicurezza.',
+  watchtower:'Torre di sorveglianza ad alta sicurezza.',
+  raptor:'Velociraptor. Alta attrazione, alto rischio.',
+  trex:'Il re del parco. Massima attrazione, massimo rischio.',
+  brachio:'Erbivoro. Sicuro e adatto alle famiglie.',
+  ptero:'Aviario per Pterosauri. Richiede contenimento aereo.',
+  trice:'Triceratops erbivoro. Popolare e relativamente sicuro.',
+  spino:'Il predatore più grande. Altissima attrazione e rischio.',
+  ankylo:'Ankylosaurus corazzato. Unico dino che aumenta la sicurezza.',
+  diloph:'Dilofosauro. Genera +1 RP al giorno grazie al suo DNA.',
+  mosaw:'Vasca del Mosasauro. Il più redditizio del parco.',
+  hotel:'Alloggia i visitatori, moltiplicando le entrate.',
+  restaurant:'Aumenta la soddisfazione e trattiene i visitatori.',
+  shop:'Negozio di souvenir. Entrate extra.',
+  lab:'Laboratorio genetico. Genera RP ogni giorno.',
+  park:'Area verde. Aumenta la soddisfazione generale.',
+  helipad:'Eliporto VIP. Attrae visitatori facoltosi.',
+  visitor:'Hub centrale del parco. Alta attrazione e soddisfazione, genera RP.',
+  infirmary:'Pronto soccorso. Raggio 14 tile: riduce le vittime da fuga del 40% e accelera la cura delle malattie (+2 giorni/giorno). Più infermerie = protezione maggiore.',
+  fountain:'Decorazione classica. Aumenta molto la soddisfazione nell\'area.',
+  statue:'Statua iconica di Jurassic Park. Attira turisti e fotografi.',
+  bench:'Panchine per i visitatori. Piccolo boost alla soddisfazione.',
+  workshop:'Officina di manutenzione. Ripara automaticamente i recinti nel raggio di 8 tile. Seleziona 🔧 e clicca su un recinto per ripararlo manualmente (-$2,000).',
+  jeep:'Stazione Tour Jeep. Lancia jeep verdi dal cancello del parco lungo le strade. Più stazioni = più jeep attive. Aumenta visitatori e soddisfazione.',
+  ranger:'Ranger Station. I ranger pattugliano un raggio di 10 tile e catturano fino a 2 dinosauri liberi al giorno. Più stazioni = catture più rapide. Aumenta sicurezza.',
+  galli:'Gallimimus. Il gregge iconico del film — i dinosauri si muovono in branco coordinato. Sicuri, generano RP.',
+  para:'Parasaurolophus. Erbivoro con cresta sonora. Famoso per il verso nel film. Sicuro e popolare.',
+  stego:'Stegosauro. Erbivoro con piastre dorsali. Icona del Mesozoico. Aumenta leggermente la sicurezza percepita.',
+};
+
+var RESEARCH = [
+  {id:'fences2',  name:'Recinti Rinforzati',   cost:10, done:false, desc:'+5 sicurezza per recinto (era +3).', apply:function(){BD.fence.sec=5;}},
+  {id:'training', name:'Addestramento Dino',   cost:15, done:false, desc:'I carnivori dimezzano il malus sicurezza.', apply:function(){BD.raptor.sec=-1;BD.trex.sec=-2;BD.ptero.sec=0;BD.spino.sec=-2;}},
+  {id:'power2',   name:'Energia Efficiente',   cost:12, done:false, desc:'Centrale produce 20 invece di 15.', apply:function(){BD.power.pw=20;}},
+  {id:'solar2',   name:'Pannelli Avanzati',    cost:8,  done:false, desc:'Pannelli producono 10 invece di 6.', apply:function(){BD.solar.pw=10;}},
+  {id:'vip',      name:'Tour VIP',             cost:20, done:false, desc:'Hotel e Eliporto raddoppiano i visitatori.', apply:function(){BD.hotel.vis=80;BD.helipad.vis=40;}},
+  {id:'shows',    name:'Spettacoli Dinosauri', cost:18, done:false, desc:'Tutti i recinti +10 visitatori.', apply:function(){var dk=['raptor','trex','brachio','ptero','trice','spino','ankylo','diloph','mosaw'];for(var i=0;i<dk.length;i++)BD[dk[i]].vis+=10;}},
+  {id:'food2',    name:'Gastronomia Avanzata', cost:8,  done:false, desc:'Ristoranti +10 vis e +10 soddisf.', apply:function(){BD.restaurant.vis=25;BD.restaurant.sat=30;}},
+  {id:'clearing2',name:'Disboscamento Rapido', cost:6,  done:false, desc:'Abbattere costa $150 invece di $300.', apply:function(){BD.clear.cost=150;}},
+];
+
+var MISSIONS = [
+  {name:'Primo Dinosauro',  desc:'Costruisci il primo recinto.',        reward:3000,  rp:0, done:false, check:function(){return G.enc>=1;}},
+  {name:'Accendi le Luci',  desc:'Genera almeno 20 unità di energia.',  reward:2000,  rp:2, done:false, check:function(){return G.pow>=20;}},
+  {name:'Parco Sicuro',     desc:'Raggiungi sicurezza ≥10.',            reward:5000,  rp:3, done:false, check:function(){return G.sec>=10;}},
+  {name:'100 Visitatori',   desc:'Raggiungi 100 visitatori/giorno.',    reward:4000,  rp:2, done:false, check:function(){return G.vis>=100;}},
+  {name:'300 Visitatori',   desc:'Raggiungi 300 visitatori/giorno.',    reward:8000,  rp:5, done:false, check:function(){return G.vis>=300;}},
+  {name:'600 Visitatori',   desc:'Raggiungi 600 visitatori/giorno.',    reward:12000, rp:8, done:false, check:function(){return G.vis>=600;}},
+  {name:'Zoo Preistorico',  desc:'Costruisci 5 recinti diversi.',       reward:6000,  rp:5, done:false, check:function(){return G.enc>=5;}},
+  {name:'Il Re del Parco',  desc:'Costruisci il T-Rex Paddock.',        reward:6000,  rp:4, done:false, check:function(){return gridHas(T_TREX);}},
+  {name:'Mondo Acquatico',  desc:'Costruisci la Vasca del Mosasauro.',  reward:8000,  rp:6, done:false, check:function(){return gridHas(T_MOSAW);}},
+  {name:'Scienziato',       desc:'Completa almeno 3 ricerche.',         reward:5000,  rp:5, done:false, check:function(){return resDone()>=3;}},
+  {name:'Miliardario',      desc:'Accumula $100,000.',                  reward:3000,  rp:3, done:false, check:function(){return G.money>=100000;}},
+  {name:'Sopravvissuto',    desc:'Arriva al giorno 20.',                reward:5000,  rp:0, done:false, check:function(){return G.day>=20;}},
+];
+
+function gridHas(tid){for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++)if(grid[j][i]===tid)return true;return false;}
+function resDone(){var n=0;for(var i=0;i<RESEARCH.length;i++)if(RESEARCH[i].done)n++;return n;}
+
+var TS=36, MAP_W=40, MAP_H=30;
+var T_ENC_MARKER=99;
+var T_BLD_MARKER=98; // interior tiles of multi-tile buildings
+
+// ── MULTI-TILE BUILDINGS array ──
+var buildings=[];
+
+function buildingAt(gx,gy){
+  for(var i=0;i<buildings.length;i++){
+    var b=buildings[i];
+    if(gx>=b.bx&&gx<b.bx+b.bw&&gy>=b.by&&gy<b.by+b.bh)return b;
+  }
+  return null;
+}
+function removeBuilding(bld){
+  for(var jj=bld.by;jj<bld.by+bld.bh;jj++)
+    for(var ii=bld.bx;ii<bld.bx+bld.bw;ii++)
+      if(grid[jj]&&(grid[jj][ii]===T_BLD_MARKER||grid[jj][ii]===BD[bld.key].id))grid[jj][ii]=T_CLEAR;
+  var idx=buildings.indexOf(bld);if(idx>=0)buildings.splice(idx,1);
+}
+function isMultiTileBld(tool){var b=BD[tool];return b&&!b.sz&&(b.bw>1||b.bh>1);}
+function canPlaceBuilding(x,y,bw,bh){
+  for(var jj=y;jj<y+bh;jj++)for(var ii=x;ii<x+bw;ii++){
+    if(ii<0||ii>=MAP_W||jj<0||jj>=MAP_H)return false;
+    var t=grid[jj][ii];if(t!==T_CLEAR&&t!==T_EMPTY)return false;
+  }
+  return true;
+}
+function hasRoadNearRect(x,y,bw,bh){
+  for(var jj=y;jj<y+bh;jj++)for(var ii=x;ii<x+bw;ii++)if(hasRoad(ii,jj))return true;
+  return false;
+}
+
+
+function rdN(gi,gj,di,dj){
+  var ni=gi+di,nj=gj+dj;
+  return ni>=0&&ni<MAP_W&&nj>=0&&nj<MAP_H&&(grid[nj][ni]===T_ROAD||grid[nj][ni]===T_GATE);
+}
+
+function enclosureAt(gx,gy){
+  for(var i=0;i<enclosures.length;i++){
+    var e=enclosures[i];
+    if(gx>=e.bx&&gx<e.bx+e.sz&&gy>=e.by&&gy<e.by+e.sz)return e;
+  }
+  return null;
+}
+
+function removeEnclosure(e){
+  for(var jj=e.by;jj<e.by+e.sz;jj++)
+    for(var ii=e.bx;ii<e.bx+e.sz;ii++)
+      if(grid[jj]&&grid[jj][ii]===T_ENC_MARKER)grid[jj][ii]=T_CLEAR;
+  var idx=enclosures.indexOf(e);
+  if(idx>=0)enclosures.splice(idx,1);
+}
+
+function spawnEnclosureDinos(enc){
+  var b=BD[enc.key];if(!b)return;
+  var count=enc.sz===2?2:enc.sz===3?3:1;
+  enc.dinos=[];
+  if(enc.energy===undefined)enc.energy=100;
+  for(var i=0;i<count;i++){
+    enc.dinos.push({
+      x:(0.3+Math.random()*0.4)*enc.sz*TS,
+      y:(0.3+Math.random()*0.4)*enc.sz*TS,
+      vx:(Math.random()-0.5)*0.6,
+      vy:(Math.random()-0.5)*0.6,
+      angle:Math.random()*Math.PI*2,
+    });
+  }
+}
+
+function updateDinos(enc){
+  var b=BD[enc.key];if(!b||!enc.dinos)return;
+  var margin=6,maxX=enc.sz*TS-margin,maxY=enc.sz*TS-margin;
+  var spd=enc.sz===3?0.5:0.4;
+  // ── HERD BEHAVIOR for Gallimimus ──
+  var isHerd=b.herd&&enc.dinos.length>1;
+  if(isHerd){
+    // Leader is first dino; others follow with offset
+    var leader=enc.dinos[0];
+    if(Math.random()<0.015){leader.vx+=(Math.random()-0.5)*0.5;leader.vy+=(Math.random()-0.5)*0.5;}
+    var lspd=Math.sqrt(leader.vx*leader.vx+leader.vy*leader.vy);
+    var hspd=0.65;
+    if(lspd>hspd){leader.vx=leader.vx/lspd*hspd;leader.vy=leader.vy/lspd*hspd;}
+    if(lspd<0.2){leader.vx=(Math.random()-0.5)*hspd;leader.vy=(Math.random()-0.5)*hspd;}
+    leader.x+=leader.vx;leader.y+=leader.vy;
+    if(leader.x<margin){leader.x=margin;leader.vx=Math.abs(leader.vx);}
+    if(leader.x>maxX){leader.x=maxX;leader.vx=-Math.abs(leader.vx);}
+    if(leader.y<margin){leader.y=margin;leader.vy=Math.abs(leader.vy);}
+    if(leader.y>maxY){leader.y=maxY;leader.vy=-Math.abs(leader.vy);}
+    leader.angle=Math.atan2(leader.vy,leader.vx);
+    // Followers chase leader with slight stagger
+    for(var fi=1;fi<enc.dinos.length;fi++){
+      var f=enc.dinos[fi];
+      var tx=leader.x+(fi-1)*(-leader.vx/hspd)*14;
+      var ty=leader.y+(fi-1)*(-leader.vy/hspd)*14;
+      var fdx=tx-f.x,fdy=ty-f.y;
+      var fd=Math.sqrt(fdx*fdx+fdy*fdy);
+      if(fd>2){f.vx=fdx/fd*hspd*0.9;f.vy=fdy/fd*hspd*0.9;}
+      f.x+=f.vx;f.y+=f.vy;
+      f.x=Math.max(margin,Math.min(maxX,f.x));
+      f.y=Math.max(margin,Math.min(maxY,f.y));
+      if(Math.abs(f.vx)+Math.abs(f.vy)>0.05)f.angle=Math.atan2(f.vy,f.vx);
+    }
+    return;
+  }
+  for(var i=0;i<enc.dinos.length;i++){
+    var d=enc.dinos[i];
+    if(Math.random()<0.02){d.vx+=(Math.random()-0.5)*0.3;d.vy+=(Math.random()-0.5)*0.3;}
+    var spd2=Math.sqrt(d.vx*d.vx+d.vy*d.vy);
+    if(spd2>spd){d.vx=d.vx/spd2*spd;d.vy=d.vy/spd2*spd;}
+    if(spd2<0.1){d.vx=(Math.random()-0.5)*spd;d.vy=(Math.random()-0.5)*spd;}
+    d.x+=d.vx;d.y+=d.vy;
+    if(d.x<margin){d.x=margin;d.vx=Math.abs(d.vx);}
+    if(d.x>maxX){d.x=maxX;d.vx=-Math.abs(d.vx);}
+    if(d.y<margin){d.y=margin;d.vy=Math.abs(d.vy);}
+    if(d.y>maxY){d.y=maxY;d.vy=-Math.abs(d.vy);}
+    if(spd2>0.05)d.angle=Math.atan2(d.vy,d.vx);
+  }
+}
+
+function drawEnclosures(){
+  var wt=Date.now()/1000;
+  for(var ei=0;ei<enclosures.length;ei++){
+    var enc=enclosures[ei];
+    var b=BD[enc.key];if(!b)continue;
+    var px=enc.bx*TS,py=enc.by*TS,pw=enc.sz*TS,ph=enc.sz*TS;
+    var isMosaw=(enc.key==='mosaw');
+    if(isMosaw){
+      ctx.fillStyle='#0a2840';ctx.fillRect(px,py,pw,ph);
+      ctx.fillStyle='#0e3a5a';ctx.fillRect(px+2,py+2,pw-4,ph-4);
+      var wt=Date.now()/1000;
+      ctx.fillStyle='rgba(0,120,200,0.2)';
+      ctx.fillRect(px+4,py+ph*0.4+Math.sin(wt)*3,pw-8,ph*0.25);
+    } else {
+      // Land enclosures — richer terrain per dino type
+      var gc=enc.key==='ptero'?'#06101c':
+             enc.key==='raptor'||enc.key==='diloph'?'#111a08':
+             enc.key==='trex'||enc.key==='spino'?'#0e1a08':
+             enc.key==='mosaw'?'#0a1e2a':'#142a0a';
+      ctx.fillStyle=gc;ctx.fillRect(px,py,pw,ph);
+
+      // Ground texture — scattered patches
+      var patchCols=enc.key==='ptero'?['rgba(10,30,60,0.5)','rgba(15,40,70,0.3)']:
+                    enc.key==='mosaw'?['rgba(10,40,60,0.4)','rgba(15,50,70,0.3)']:
+                    ['rgba(20,50,8,0.45)','rgba(30,70,10,0.3)','rgba(15,40,5,0.35)'];
+      for(var g=0;g<enc.sz*4;g++){
+        var gx2=px+3+((enc.bx*17+enc.by*13+g*31)%(pw-8));
+        var gy2=py+3+((enc.bx*11+enc.by*19+g*23)%(ph-8));
+        var gsz=3+((enc.bx+enc.by+g)%4);
+        ctx.fillStyle=patchCols[(enc.bx+g)%patchCols.length];
+        ctx.fillRect(gx2,gy2,gsz,gsz);
+      }
+      // Trees / boulders for large enclosures
+      if(enc.sz>=3){
+        ctx.fillStyle=enc.key==='ptero'?'#0a1828':'#0e2808';
+        ctx.beginPath();ctx.arc(px+pw*0.12,py+ph*0.12,10,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(px+pw*0.88,py+ph*0.82,9,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=enc.key==='ptero'?'#0e2040':'#122e0a';
+        ctx.beginPath();ctx.arc(px+pw*0.12,py+ph*0.12,7,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(px+pw*0.88,py+ph*0.82,6,0,Math.PI*2);ctx.fill();
+        // Highlight
+        ctx.fillStyle='rgba(40,120,15,0.2)';
+        ctx.beginPath();ctx.arc(px+pw*0.11,py+ph*0.10,3,0,Math.PI*2);ctx.fill();
+      }
+    }
+    var danger=G.sec<0;
+    var powered=G.pow>=G.powNeed;
+    var fenceColor=danger?'#ff3333':powered?'#39ff14':'#ff8800';
+    var fenceColorDim=danger?'#881111':powered?'#1a8800':'#884400';
+
+    // ── ANIMATED ELECTRIC FENCE ──
+    // Outer glow (non-iOS)
+    if(!IS_IOS){ctx.shadowColor=fenceColor;ctx.shadowBlur=8;}
+    ctx.strokeStyle=fenceColor;ctx.lineWidth=2;
+    ctx.strokeRect(px+2,py+2,pw-4,ph-4);
+    ctx.shadowBlur=0;
+
+    // Inner dim wire
+    ctx.strokeStyle=fenceColorDim;ctx.lineWidth=1;
+    ctx.strokeRect(px+4,py+4,pw-8,ph-8);
+    ctx.lineWidth=1;
+
+    // Fence posts — solid rectangles at corners + midpoints
+    ctx.fillStyle=fenceColor;
+    var postPositions=[[0,0],[pw-5,0],[0,ph-5],[pw-5,ph-5]];
+    if(enc.sz>=3){
+      postPositions.push([Math.floor(pw/2)-2,0],[Math.floor(pw/2)-2,ph-5]);
+      postPositions.push([0,Math.floor(ph/2)-2],[pw-5,Math.floor(ph/2)-2]);
+    }
+    for(var p=0;p<postPositions.length;p++){
+      ctx.fillRect(px+postPositions[p][0],py+postPositions[p][1],5,5);
+    }
+
+    // Horizontal wire lines with animated "electricity" segments
+    if(powered&&!danger){
+      var numWires=enc.sz>=3?3:2;
+      for(var w=0;w<numWires;w++){
+        var wy2=py+Math.floor(ph*(w+1)/(numWires+1));
+        // Static wire
+        ctx.strokeStyle='rgba(30,160,10,0.3)';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(px+4,wy2);ctx.lineTo(px+pw-4,wy2);ctx.stroke();
+        // Animated spark segments along wire (skip on iOS)
+        if(!IS_IOS){
+          var sparkT=wt*3+w*1.3+enc.bx*0.7;
+          var numSegs=enc.sz*3;
+          for(var s=0;s<numSegs;s++){
+            var segX=px+4+((s/numSegs)*(pw-8));
+            var jitter=Math.sin(sparkT+s*2.1)*2;
+            var bright=0.3+0.7*Math.abs(Math.sin(sparkT*1.5+s));
+            ctx.strokeStyle='rgba(57,255,20,'+bright.toFixed(2)+')';
+            ctx.lineWidth=1+Math.abs(Math.sin(sparkT+s))*1.5;
+            ctx.beginPath();ctx.moveTo(segX,wy2+jitter);ctx.lineTo(segX+pw/numSegs,wy2-jitter*0.8);ctx.stroke();
+          }
+        }
+      }
+      // Occasional spark flash at post positions (non-iOS)
+      if(!IS_IOS&&Math.random()<0.06){
+        var sp=postPositions[Math.floor(Math.random()*postPositions.length)];
+        ctx.fillStyle='rgba(200,255,150,0.9)';
+        ctx.beginPath();ctx.arc(px+sp[0]+2,py+sp[1]+2,3,0,Math.PI*2);ctx.fill();
+      }
+    } else if(!powered){
+      // Unpowered — dead grey wire
+      ctx.strokeStyle='rgba(100,100,100,0.4)';ctx.lineWidth=1;
+      var numWiresOff=enc.sz>=3?3:2;
+      for(var w2=0;w2<numWiresOff;w2++){
+        var wy3=py+Math.floor(ph*(w2+1)/(numWiresOff+1));
+        ctx.beginPath();ctx.moveTo(px+4,wy3);ctx.lineTo(px+pw-4,wy3);ctx.stroke();
+      }
+    } else {
+      // Security critical — flickering red
+      var flicker=0.5+0.5*Math.abs(Math.sin(wt*8));
+      ctx.strokeStyle='rgba(255,50,50,'+flicker.toFixed(2)+')';ctx.lineWidth=2;
+      ctx.strokeRect(px+2,py+2,pw-4,ph-4);
+    }
+
+    // Pulsing corner insulators
+    if(!IS_IOS&&powered&&!danger){
+      var ipulse=0.4+0.6*Math.abs(Math.sin(wt*2));
+      ctx.fillStyle='rgba(150,255,80,'+ipulse.toFixed(2)+')';
+      for(var ip=0;ip<postPositions.length;ip++){
+        ctx.beginPath();ctx.arc(px+postPositions[ip][0]+2,py+postPositions[ip][1]+2,3,0,Math.PI*2);ctx.fill();
+      }
+    }
+    ctx.lineWidth=1;
+    ctx.font='bold '+Math.max(8,Math.floor(TS*0.28))+'px monospace';
+    ctx.fillStyle='rgba(255,255,255,0.7)';
+    ctx.textAlign='left';ctx.textBaseline='top';
+    ctx.fillText(b.lbl,px+5,py+5);
+    if(G.pow<G.powNeed){ctx.fillStyle='rgba(255,60,0,0.18)';ctx.fillRect(px,py,pw,ph);}
+    updateDinos(enc);
+    if(enc.dinos){
+      for(var di=0;di<enc.dinos.length;di++){
+        var d2=enc.dinos[di];
+        ctx.save();
+        ctx.translate(px+d2.x,py+d2.y);
+        var facingLeft=Math.cos(d2.angle)<0;
+        if(facingLeft)ctx.scale(-1,1);
+        ctx.fillStyle='rgba(0,0,0,0.25)';
+        ctx.save();ctx.scale(1,0.4);ctx.beginPath();ctx.arc(0,15,10,0,Math.PI*2);ctx.restore();ctx.fill();
+        drawDinoShape(enc.key,enc.sz);
+        ctx.restore();
+      }
+    }
+    // Energy bar
+    var energy=(enc.energy!==undefined)?enc.energy:100;
+    var barW=pw-10,barH=5,barX=px+5,barY=py+ph-14;
+    ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(barX-1,barY-1,barW+2,barH+2);
+    var barColor=energy>60?'#39ff14':energy>25?'#ffb300':'#ff3333';
+    if(energy<=0)barColor='#880000';
+    ctx.fillStyle=barColor;
+    ctx.fillRect(barX,barY,Math.max(0,barW*(energy/100)),barH);
+    if(energy<=25){ctx.shadowColor=barColor;ctx.shadowBlur=6;ctx.fillRect(barX,barY,Math.max(0,barW*(energy/100)),barH);ctx.shadowBlur=0;}
+    ctx.font='bold '+Math.max(6,Math.floor(TS*0.17))+'px monospace';
+    ctx.fillStyle=barColor;ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.fillText('⚡'+Math.round(energy)+'%',barX,barY+barH/2);
+    ctx.font='bold '+Math.max(7,Math.floor(TS*0.22))+'px sans-serif';
+    ctx.fillStyle='#ffcc44';ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillText('⚠ '+b.lbl.toUpperCase(),px+pw/2,py+ph-16);
+    if(energy<=0){
+      ctx.fillStyle='rgba(255,0,0,0.12)';ctx.fillRect(px,py,pw,ph);
+      ctx.font='bold '+Math.max(8,Math.floor(TS*0.3))+'px monospace';
+      ctx.fillStyle='rgba(255,60,60,0.85)';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('⚠ VULNERABILE',px+pw/2,py+ph/2);
+    }
+    ctx.textAlign='left';ctx.textBaseline='top';
+    // ── DISEASE INDICATOR ──
+    if(enc.disease){
+      var dpulse=0.55+0.45*Math.abs(Math.sin(Date.now()/350));
+      ctx.save();ctx.globalAlpha=dpulse;
+      ctx.font=Math.max(12,Math.floor(pw*0.18))+'px serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('🦠',px+pw*0.82,py+ph*0.22);
+      ctx.font='bold '+Math.max(6,Math.floor(TS*0.17))+'px monospace';
+      ctx.fillStyle='#ff66cc';ctx.shadowColor='#ff44aa';ctx.shadowBlur=5;
+      ctx.textBaseline='bottom';
+      ctx.fillText('MALATO',px+pw/2,py+ph-20);
+      ctx.shadowBlur=0;ctx.globalAlpha=1;ctx.restore();
+      ctx.fillStyle='rgba(180,0,180,0.07)';ctx.fillRect(px,py,pw,ph);
+    }
+  }
+}
+function drawMultiBuildings(){
+  for(var bi=0;bi<buildings.length;bi++){
+    var bld=buildings[bi];
+    var b=BD[bld.key];if(!b)continue;
+    var px=bld.bx*TS,py=bld.by*TS,pw=bld.bw*TS,ph=bld.bh*TS;
+
+    // Draw stretched pixel-art tile over full area
+    ctx.save();
+    ctx.translate(px,py);
+    // Scale so the single-tile art fills the multi-tile area
+    ctx.scale(bld.bw, bld.bh);
+    drawBuildingTile(ctx, BD[bld.key].id, bld.key, 0, 0, TS);
+    ctx.restore();
+
+    // Outer border
+    ctx.strokeStyle='#39ff14';ctx.lineWidth=2;
+    ctx.strokeRect(px+1,py+1,pw-2,ph-2);ctx.lineWidth=1;
+
+    // Label top-left
+    ctx.font='bold '+Math.max(7,Math.floor(TS*0.22))+'px monospace';
+    ctx.fillStyle='rgba(255,255,255,0.8)';
+    ctx.textAlign='left';ctx.textBaseline='top';
+    ctx.fillText(b.icon+' '+b.lbl,px+5,py+4);
+    ctx.textAlign='left';ctx.textBaseline='top';
+
+    // Power warning
+    if(G.pow<G.powNeed){
+      ctx.fillStyle='rgba(255,80,0,0.18)';ctx.fillRect(px,py,pw,ph);
+    }
+    // Energy bar (bottom of building)
+    var ben=getBldEnergy(bld);
+    var bbarW=pw-10,bbarH=4,bbarX=px+5,bbarY=py+ph-8;
+    ctx.fillStyle='rgba(0,0,0,0.55)';ctx.fillRect(bbarX-1,bbarY-1,bbarW+2,bbarH+2);
+    var bbarCol=ben>60?'#39ff14':ben>25?'#ffb300':'#ff3333';
+    ctx.fillStyle=bbarCol;ctx.fillRect(bbarX,bbarY,Math.max(0,bbarW*(ben/100)),bbarH);
+    if(ben<=25){ctx.shadowColor=bbarCol;ctx.shadowBlur=5;ctx.fillRect(bbarX,bbarY,Math.max(0,bbarW*(ben/100)),bbarH);ctx.shadowBlur=0;}
+    ctx.font='bold '+Math.max(5,Math.floor(TS*0.14))+'px monospace';
+    ctx.fillStyle=bbarCol;ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.fillText('⚙'+Math.round(ben)+'%',bbarX,bbarY+bbarH/2);
+    ctx.textAlign='left';ctx.textBaseline='top';
+  }
+}
+
+function drawDinoShape(key,sz){
+  var s=sz===3?1.4:1.0;
+  ctx.save();ctx.scale(s,s);
+  if(key==='trex'){
+    ctx.fillStyle='#4a6820';ctx.fillRect(-6,-8,14,10);
+    ctx.fillStyle='#3a5818';ctx.fillRect(8,-10,8,8);ctx.fillRect(-12,-4,8,4);
+    ctx.fillStyle='#ff2200';ctx.fillRect(13,-8,2,2);
+    ctx.fillStyle='#2a4810';ctx.fillRect(-3,2,4,6);ctx.fillRect(4,2,4,6);
+    ctx.fillStyle='#5a7828';ctx.fillRect(6,-6,2,3);
+  } else if(key==='raptor'){
+    ctx.fillStyle='#7a5828';ctx.fillRect(-4,-6,10,7);ctx.fillRect(6,-8,6,6);ctx.fillRect(-14,-3,11,3);
+    ctx.fillStyle='#ffff00';ctx.fillRect(9,-7,2,2);
+    ctx.fillStyle='#5a3818';ctx.fillRect(0,1,3,6);ctx.fillRect(5,1,3,6);
+    ctx.fillStyle='#3a2010';ctx.fillRect(3,5,2,3);
+  } else if(key==='brachio'){
+    ctx.fillStyle='#5a7830';ctx.fillRect(-8,0,16,8);ctx.fillRect(-12,2,5,4);ctx.fillRect(2,-18,4,20);ctx.fillRect(0,-22,8,6);
+    ctx.fillStyle='#3a5820';ctx.fillRect(-8,0,16,4);
+    ctx.fillStyle='#ff4400';ctx.fillRect(6,-20,2,2);
+    ctx.fillStyle='#4a6828';ctx.fillRect(-7,6,4,6);ctx.fillRect(-1,6,4,6);ctx.fillRect(5,6,4,6);
+  } else if(key==='spino'){
+    ctx.fillStyle='#3a6a20';ctx.fillRect(-6,-6,14,9);ctx.fillRect(8,-8,9,7);ctx.fillRect(-14,-3,9,3);
+    ctx.fillStyle='#cc3300';ctx.fillRect(-2,-16,3,11);ctx.fillRect(2,-14,3,9);ctx.fillRect(6,-12,3,7);
+    ctx.fillStyle='#ffff00';ctx.fillRect(14,-7,2,2);
+    ctx.fillStyle='#2a5010';ctx.fillRect(-3,3,4,6);ctx.fillRect(4,3,4,6);
+  } else if(key==='trice'){
+    ctx.fillStyle='#4a7028';ctx.fillRect(-6,-4,14,8);ctx.fillRect(8,-6,8,7);ctx.fillRect(-12,-2,7,4);
+    ctx.fillStyle='#cc4422';ctx.fillRect(8,-10,10,8);
+    ctx.fillStyle='#ddddcc';ctx.fillRect(14,-12,2,4);ctx.fillRect(11,-11,2,3);ctx.fillRect(8,-11,2,3);
+    ctx.fillStyle='#3a5820';ctx.fillRect(-5,4,4,5);ctx.fillRect(2,4,4,5);ctx.fillRect(-3,4,4,5);
+  } else if(key==='ptero'){
+    ctx.fillStyle='#2a3a6a';ctx.fillRect(-4,-3,8,5);ctx.fillRect(4,-5,7,4);ctx.fillRect(8,-7,2,3);
+    ctx.fillStyle='#1a2a5a';ctx.fillRect(-16,-2,13,4);ctx.fillRect(8,-2,10,4);
+    ctx.fillStyle='rgba(80,120,200,0.3)';ctx.fillRect(-16,-2,13,4);ctx.fillRect(8,-2,10,4);
+    ctx.fillStyle='#ffff88';ctx.fillRect(8,-4,2,2);
+  } else if(key==='ankylo'){
+    ctx.fillStyle='#4a5a28';ctx.fillRect(-8,-3,16,7);ctx.fillRect(8,-5,6,5);
+    ctx.fillStyle='#6a7a38';
+    for(var ap=-6;ap<8;ap+=4)ctx.fillRect(ap,-5,3,3);
+    ctx.fillStyle='#3a4a18';ctx.fillRect(-14,-1,7,4);ctx.fillRect(-16,0,4,4);
+    ctx.fillStyle='#ffff00';ctx.fillRect(11,-4,2,2);
+    ctx.fillStyle='#2a3a10';ctx.fillRect(-7,4,3,4);ctx.fillRect(-1,4,3,4);ctx.fillRect(4,4,3,4);ctx.fillRect(8,4,3,4);
+  } else if(key==='diloph'){
+    ctx.fillStyle='#6a4a28';ctx.fillRect(-4,-5,10,7);ctx.fillRect(6,-7,7,6);ctx.fillRect(-12,-2,9,3);
+    ctx.fillStyle='#cc3300';ctx.fillRect(7,-11,3,5);ctx.fillRect(10,-10,3,4);
+    ctx.fillStyle='#ffff00';ctx.fillRect(10,-6,2,2);
+    ctx.fillStyle='#4a3018';ctx.fillRect(0,2,3,5);ctx.fillRect(4,2,3,5);
+  } else if(key==='mosaw'){
+    ctx.fillStyle='#1a4a6a';ctx.fillRect(-14,-3,24,6);ctx.fillRect(10,-5,8,5);ctx.fillRect(-18,0,5,3);ctx.fillRect(-16,-4,4,3);
+    ctx.fillStyle='#0a3a5a';ctx.fillRect(-6,3,5,4);ctx.fillRect(2,3,5,4);ctx.fillRect(-6,-7,5,4);ctx.fillRect(2,-7,5,4);
+    ctx.fillStyle='#ffff00';ctx.fillRect(14,-4,2,2);
+    ctx.strokeStyle='rgba(0,180,255,0.4)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(0,8,12,0,Math.PI);ctx.stroke();ctx.lineWidth=1;
+  } else if(key==='galli'){
+    // Gallimimus: long neck, ostrich-like, fast runner posture
+    ctx.fillStyle='#7a8a40';ctx.fillRect(-4,-5,9,7);   // body
+    ctx.fillStyle='#6a7a30';ctx.fillRect(5,-8,4,5);    // neck
+    ctx.fillStyle='#5a6a28';ctx.fillRect(7,-11,5,4);   // small head
+    ctx.fillStyle='#ffff88';ctx.fillRect(10,-10,2,1);  // eye
+    ctx.fillStyle='#4a5a18';ctx.fillRect(-12,-2,9,3);  // tail
+    // legs - running pose
+    ctx.fillStyle='#6a7a30';ctx.fillRect(-2,2,3,7);ctx.fillRect(3,2,3,5);
+    ctx.fillStyle='#3a4a10';ctx.fillRect(-2,7,3,3);ctx.fillRect(3,5,3,3);
+    // arm stubs
+    ctx.fillStyle='#8a9a48';ctx.fillRect(1,-4,4,3);
+  } else if(key==='para'){
+    // Parasaurolophus: duck-bill, tall cranial crest
+    ctx.fillStyle='#5a7840';ctx.fillRect(-6,-4,13,8);  // body
+    ctx.fillStyle='#4a6830';ctx.fillRect(7,-6,7,6);    // head/snout
+    // Iconic backward crest
+    ctx.fillStyle='#cc4422';ctx.fillRect(4,-13,3,10);  // crest pole
+    ctx.fillStyle='#dd5533';ctx.fillRect(-4,-14,10,3); // crest tip
+    ctx.fillStyle='#ffff88';ctx.fillRect(12,-5,2,2);   // eye
+    ctx.fillStyle='#3a5820';ctx.fillRect(-14,-2,9,4);  // tail
+    // 4 legs
+    ctx.fillStyle='#4a6830';ctx.fillRect(-4,4,3,6);ctx.fillRect(1,4,3,6);
+    ctx.fillStyle='#2a4010';ctx.fillRect(-4,8,3,3);ctx.fillRect(1,8,3,3);
+  } else if(key==='stego'){
+    // Stegosauro: low wide body, iconic back plates, spiked tail
+    ctx.fillStyle='#4a6030';ctx.fillRect(-9,-2,18,8);  // body
+    ctx.fillStyle='#3a5020';ctx.fillRect(9,-4,7,5);    // head
+    ctx.fillStyle='#ffff88';ctx.fillRect(14,-3,2,2);   // eye
+    // Iconic back plates (alternating)
+    ctx.fillStyle='#cc6622';
+    var plateX=[-6,-2,2,6];
+    for(var pp=0;pp<plateX.length;pp++){
+      var ph2=pp%2===0?10:8;
+      ctx.fillRect(plateX[pp],-2-ph2,4,ph2);
+    }
+    // Tail spikes
+    ctx.fillStyle='#aaaaaa';
+    ctx.fillRect(-12,1,4,3);ctx.fillRect(-14,-2,3,3);
+    // 4 stubby legs
+    ctx.fillStyle='#3a5020';
+    ctx.fillRect(-6,6,4,5);ctx.fillRect(-1,6,4,5);ctx.fillRect(3,6,4,5);
+    ctx.fillStyle='#2a3810';
+    ctx.fillRect(-6,9,4,2);ctx.fillRect(-1,9,4,2);ctx.fillRect(3,9,4,2);
+  } else {
+    ctx.fillStyle='#4a6820';ctx.fillRect(-5,-5,10,8);ctx.fillRect(5,-7,6,6);ctx.fillRect(-10,-2,6,3);
+  }
+  ctx.restore();
+}
+
+function drawBuildingTile(c,t,key,px,py,ts){
+  var cx=px+ts/2,cy=py+ts/2,wt=Date.now()/1000;
+  // ── helper: neon glow border ──
+  function neonBorder(col,w){if(!IS_IOS){c.shadowColor=col;c.shadowBlur=8;}c.strokeStyle=col;c.lineWidth=w||1.5;c.strokeRect(px+2,py+2,ts-4,ts-4);c.shadowBlur=0;c.lineWidth=1;}
+  function flatBase(bg,border){c.fillStyle=bg;c.fillRect(px,py,ts,ts);c.fillStyle=border;c.fillRect(px,py,ts,2);c.fillRect(px,py+ts-2,ts,2);c.fillRect(px,py,2,ts);c.fillRect(px+ts-2,py,2,ts);}
+  function label(txt,col,y2){c.fillStyle=col||'#39ff14';c.font='bold '+Math.max(5,Math.floor(ts*0.13))+'px monospace';c.textAlign='center';c.textBaseline='middle';c.fillText(txt,cx,y2||cy);}
+
+  if(t===T_HOTEL){
+    // Flat dark purple building, warm lit windows, neon sign
+    flatBase('#1a0f2a','#bb44ff');
+    // Floor layers
+    c.fillStyle='#2a1a3a';c.fillRect(px+3,py+5,ts-6,ts-7);
+    // Windows grid — warm yellow, some lit
+    for(var wy=0;wy<3;wy++)for(var wx=0;wx<3;wx++){
+      var lit=(wy*3+wx+Math.floor(wt*0.4))%5!==0;
+      c.fillStyle=lit?'#ffe066':'#1a0f2a';
+      c.fillRect(px+5+wx*Math.floor((ts-10)/3),py+7+wy*Math.floor((ts-14)/3),Math.floor((ts-10)/3)-2,Math.floor((ts-14)/3)-2);
+      if(lit){c.shadowColor='#ffe066';c.shadowBlur=4;c.fillRect(px+5+wx*Math.floor((ts-10)/3),py+7+wy*Math.floor((ts-14)/3),Math.floor((ts-10)/3)-2,Math.floor((ts-14)/3)-2);c.shadowBlur=0;}
+    }
+    // Neon HOTEL sign at bottom
+    c.shadowColor='#bb44ff';c.shadowBlur=10;
+    c.fillStyle='#bb44ff';c.fillRect(px+4,py+ts-7,ts-8,5);
+    c.shadowBlur=0;
+    label('HOTEL','#ffffff',py+ts-4);
+    neonBorder('#bb44ff');
+  }else if(t===T_REST){
+    // Flat terracotta, striped awning, warm glow inside
+    flatBase('#1a0a06','#ff6633');
+    // Body
+    c.fillStyle='#2a1208';c.fillRect(px+3,py+6,ts-6,ts-8);
+    // Awning stripes
+    for(var aw=0;aw<5;aw++){c.fillStyle=aw%2?'#cc3300':'#ff6633';c.fillRect(px+3+aw*(ts-6)/5,py+4,(ts-6)/5,5);}
+    // Window warm glow
+    c.fillStyle='rgba(255,200,80,0.35)';c.fillRect(px+5,py+12,ts-10,ts-18);
+    // Door
+    c.fillStyle='#5a2a10';c.fillRect(cx-4,py+ts-9,8,9);
+    c.fillStyle='rgba(255,180,60,0.4)';c.fillRect(cx-3,py+ts-8,6,7);
+    // Fork+knife icon
+    c.fillStyle='#ff6633';c.shadowColor='#ff6633';c.shadowBlur=6;
+    c.fillRect(cx-6,py+8,2,8);c.fillRect(cx-4,py+8,1,5);c.fillRect(cx+3,py+8,2,8);c.fillRect(cx+5,py+8,1,5);
+    c.shadowBlur=0;
+    neonBorder('#ff6633');
+  }else if(t===T_SHOP){
+    // Flat dark blue, bright shop sign, colourful merchandise dots
+    flatBase('#060e1a','#00cfff');
+    c.fillStyle='#0a1a2a';c.fillRect(px+3,py+6,ts-6,ts-8);
+    // Shop sign band
+    c.fillStyle='#00cfff';c.fillRect(px+3,py+4,ts-6,5);
+    c.shadowColor='#00cfff';c.shadowBlur=6;c.fillRect(px+3,py+4,ts-6,5);c.shadowBlur=0;
+    label('SHOP','#000000',py+7);
+    // Glass window
+    c.fillStyle='rgba(100,200,255,0.15)';c.fillRect(px+5,py+11,ts-10,ts-17);
+    c.strokeStyle='rgba(100,200,255,0.4)';c.lineWidth=1;c.strokeRect(px+5,py+11,ts-10,ts-17);c.lineWidth=1;
+    // Merchandise dots
+    var cols2=['#ff4466','#ffcc00','#39ff14','#bb44ff','#00cfff'];
+    for(var sd=0;sd<5;sd++){c.fillStyle=cols2[sd];c.beginPath();c.arc(px+7+sd*Math.floor((ts-14)/5)+2,cy+4,2,0,Math.PI*2);c.fill();}
+    // Door
+    c.fillStyle='#0a1a2a';c.fillRect(cx-3,py+ts-8,6,8);
+    neonBorder('#00cfff');
+  }else if(t===T_LAB){
+    // Dark InGen lab, DNA helix, cyan glow
+    flatBase('#020c18','#00cfff');
+    c.fillStyle='#041428';c.fillRect(px+3,py+6,ts-6,ts-8);
+    // Dome top
+    c.fillStyle='#061e38';c.beginPath();c.arc(cx,py+8,ts*0.36,Math.PI,0);c.closePath();c.fill();
+    // InGen logo glow
+    c.shadowColor='#00cfff';c.shadowBlur=12;
+    c.fillStyle='#00cfff';
+    c.font='bold '+Math.max(6,Math.floor(ts*0.2))+'px monospace';
+    c.textAlign='center';c.textBaseline='middle';c.fillText('InGen',cx,cy-2);
+    c.shadowBlur=0;
+    // Animated DNA dots bottom
+    for(var dn=0;dn<4;dn++){
+      var dna_y=py+ts-7+Math.sin(wt*2+dn*1.2)*3;
+      c.fillStyle='#39ff14';c.shadowColor='#39ff14';c.shadowBlur=5;
+      c.beginPath();c.arc(px+6+dn*Math.floor((ts-12)/3),dna_y,2,0,Math.PI*2);c.fill();
+      c.fillStyle='#00cfff';
+      c.beginPath();c.arc(px+6+dn*Math.floor((ts-12)/3),py+ts-7-Math.sin(wt*2+dn*1.2)*3,2,0,Math.PI*2);c.fill();
+      c.shadowBlur=0;
+    }
+    neonBorder('#00cfff',2);
+  }else if(t===T_PARK){
+    // Flat green park, 3 trees with neon outlines, path
+    flatBase('#0c2208','#39ff14');
+    c.fillStyle='#122e0a';c.fillRect(px+2,py+2,ts-4,ts-4);
+    // Path
+    c.fillStyle='#2a4418';c.fillRect(cx-2,py+2,4,ts-4);
+    c.fillStyle='rgba(200,180,80,0.2)';c.fillRect(cx-2,py+2,4,ts-4);
+    // Trees — flat circles with neon glow
+    var treeData=[[cx-7,cy-5,7],[cx+6,cy-7,6],[cx,cy+5,8]];
+    for(var tr=0;tr<treeData.length;tr++){
+      c.fillStyle='#1a5a08';c.beginPath();c.arc(treeData[tr][0],treeData[tr][1],treeData[tr][2],0,Math.PI*2);c.fill();
+      c.fillStyle='#2a7a10';c.beginPath();c.arc(treeData[tr][0]-1,treeData[tr][1]-1,treeData[tr][2]-2,0,Math.PI*2);c.fill();
+      // Trunk
+      c.fillStyle='#5a3010';c.fillRect(treeData[tr][0]-1,treeData[tr][1]+treeData[tr][2]-2,3,5);
+    }
+    c.shadowColor='#39ff14';c.shadowBlur=5;c.strokeStyle='#39ff14';c.lineWidth=1;
+    for(var tr2=0;tr2<treeData.length;tr2++){c.beginPath();c.arc(treeData[tr2][0],treeData[tr2][1],treeData[tr2][2],0,Math.PI*2);c.stroke();}
+    c.shadowBlur=0;c.lineWidth=1;
+  }else if(t===T_HELI){
+    // Flat dark helipad with glowing H, corner lights
+    flatBase('#0c0c18','#ffcc00');
+    c.fillStyle='#141428';c.fillRect(px+2,py+2,ts-4,ts-4);
+    // Helipad circle
+    c.strokeStyle='#ffcc00';c.lineWidth=2;c.shadowColor='#ffcc00';c.shadowBlur=8;
+    c.beginPath();c.arc(cx,cy,ts*0.36,0,Math.PI*2);c.stroke();
+    // H symbol
+    c.fillStyle='#ffcc00';c.fillRect(cx-7,cy-6,3,12);c.fillRect(cx+4,cy-6,3,12);c.fillRect(cx-4,cy-2,8,3);
+    c.shadowBlur=0;c.lineWidth=1;
+    // Corner beacon lights flashing
+    var pulse=0.4+0.6*Math.abs(Math.sin(wt*2));
+    var bpts=[[px+3,py+3],[px+ts-6,py+3],[px+3,py+ts-6],[px+ts-6,py+ts-6]];
+    c.fillStyle='rgba(255,80,0,'+pulse+')';
+    c.shadowColor='#ff4400';c.shadowBlur=8*pulse;
+    for(var bl=0;bl<bpts.length;bl++){c.beginPath();c.arc(bpts[bl][0]+1,bpts[bl][1]+1,3,0,Math.PI*2);c.fill();}
+    c.shadowBlur=0;
+    neonBorder('#ffcc00');
+  }else if(t===T_VISITOR){
+    // Visitor Centre: grand classical look, neon JP banner
+    flatBase('#0e1a08','#ffcc00');
+    c.fillStyle='#182808';c.fillRect(px+3,py+5,ts-6,ts-7);
+    // Columns
+    var numCols=3,colW=Math.floor((ts-10)/numCols)-1;
+    for(var vc=0;vc<numCols;vc++){
+      c.fillStyle='#d4b84a';c.fillRect(px+5+vc*(colW+1),py+8,colW,ts-14);
+      c.fillStyle='rgba(255,255,150,0.15)';c.fillRect(px+5+vc*(colW+1),py+8,Math.floor(colW/3),ts-14);
+    }
+    // Pediment
+    c.fillStyle='#c8a040';c.fillRect(px+3,py+5,ts-6,5);
+    // Neon JP banner
+    c.shadowColor='#ffcc00';c.shadowBlur=10;
+    c.fillStyle='#ffcc00';c.fillRect(px+4,py+3,ts-8,4);
+    c.shadowBlur=0;
+    c.fillStyle='#000';c.font='bold '+Math.max(4,Math.floor(ts*0.11))+'px monospace';
+    c.textAlign='center';c.textBaseline='middle';c.fillText('JURASSIC PARK',cx,py+5);
+    // Door
+    c.fillStyle='rgba(180,240,255,0.5)';c.fillRect(cx-4,py+ts-9,8,9);
+    neonBorder('#ffcc00',2);
+  }else if(t===T_INFIRMARY){
+    // Clean white medical, red cross neon
+    flatBase('#06101a','#ff4444');
+    c.fillStyle='#c8dce8';c.fillRect(px+3,py+5,ts-6,ts-7);
+    // Red cross — neon
+    c.shadowColor='#ff2222';c.shadowBlur=10;
+    c.fillStyle='#ff2222';c.fillRect(cx-2,py+8,4,ts-14);c.fillRect(px+6,cy-2,ts-12,4);
+    c.shadowBlur=0;
+    // Windows
+    c.fillStyle='rgba(150,220,255,0.55)';c.fillRect(px+5,py+11,5,5);c.fillRect(px+ts-10,py+11,5,5);
+    // Door
+    c.fillStyle='#2a6a8a';c.fillRect(cx-3,py+ts-8,7,8);
+    neonBorder('#ff4444');
+  }else if(t===T_FOUNTAIN){
+    // Flat stone basin, animated neon water jets
+    flatBase('#101a10','#00cfff');
+    c.fillStyle='#1a2a1a';c.fillRect(px+2,py+2,ts-4,ts-4);
+    // Basin outer
+    c.fillStyle='#3a5040';c.beginPath();c.arc(cx,cy+3,ts*0.4,0,Math.PI*2);c.fill();
+    // Water surface
+    c.fillStyle='#1a5a7a';c.beginPath();c.arc(cx,cy+3,ts*0.33,0,Math.PI*2);c.fill();
+    // Animated jets
+    c.shadowColor='#00cfff';c.shadowBlur=8;
+    c.strokeStyle='rgba(100,220,255,0.8)';c.lineWidth=1.5;
+    for(var fj=0;fj<5;fj++){
+      var fang=fj/5*Math.PI*2+wt*1.2;
+      var jlen=ts*0.18+Math.sin(wt*2+fj)*ts*0.05;
+      c.beginPath();c.moveTo(cx,cy+3);c.lineTo(cx+Math.cos(fang)*jlen,cy+3+Math.sin(fang)*jlen-jlen*0.6);c.stroke();
+    }
+    c.shadowBlur=0;c.lineWidth=1;
+    // Centre spout
+    c.fillStyle='#00cfff';c.beginPath();c.arc(cx,cy,3,0,Math.PI*2);c.fill();
+    neonBorder('#00cfff');
+  }else if(t===T_STATUE){
+    // Silhouette of T-Rex on pedestal, amber neon
+    flatBase('#0c1408','#ffb300');
+    c.fillStyle='#141e0c';c.fillRect(px+2,py+2,ts-4,ts-4);
+    // Pedestal
+    c.fillStyle='#4a3a20';c.fillRect(cx-7,py+ts-9,14,7);
+    c.fillStyle='#6a5a30';c.fillRect(cx-5,py+ts-11,10,3);
+    // T-Rex silhouette flat
+    c.fillStyle='#c8901a';
+    c.shadowColor='#ffb300';c.shadowBlur=6;
+    // body
+    c.fillRect(cx-5,py+8,12,8);
+    // head
+    c.fillRect(cx+6,py+4,8,7);
+    // tail
+    c.fillRect(cx-12,py+10,8,4);
+    // tiny arms
+    c.fillRect(cx+4,py+10,3,3);
+    // legs
+    c.fillRect(cx-3,py+16,4,6);c.fillRect(cx+3,py+16,4,6);
+    // eye dot
+    c.fillStyle='#ff2200';c.beginPath();c.arc(cx+12,py+6,1.5,0,Math.PI*2);c.fill();
+    c.shadowBlur=0;
+    // JP label on pedestal
+    c.fillStyle='#ffb300';c.font='bold '+Math.max(4,Math.floor(ts*0.12))+'px monospace';
+    c.textAlign='center';c.textBaseline='middle';c.fillText('JP',cx,py+ts-5);
+    neonBorder('#ffb300');
+  }else if(t===T_BENCH){
+    // Simple flat park bench, green surroundings, neon highlight
+    flatBase('#0c1e08','#39ff14');
+    c.fillStyle='#122808';c.fillRect(px+2,py+2,ts-4,ts-4);
+    // Grass texture dots
+    c.fillStyle='rgba(40,120,20,0.4)';
+    for(var bg=0;bg<6;bg++)c.fillRect(px+4+bg*5,py+ts-8,2,3);
+    // Bench seat
+    c.fillStyle='#8b5e2a';c.fillRect(px+4,cy-1,ts-8,4);
+    // Seat planks highlight
+    c.fillStyle='#aa7a3a';c.fillRect(px+4,cy-1,ts-8,1);
+    // Back rest
+    c.fillStyle='#7a4e1a';c.fillRect(px+4,cy-7,ts-8,4);
+    c.fillStyle='#9a6a28';c.fillRect(px+4,cy-7,ts-8,1);
+    // Legs
+    c.fillStyle='#5a3a10';c.fillRect(px+5,cy+3,3,6);c.fillRect(px+ts-8,cy+3,3,6);
+    c.fillRect(px+6,cy-6,2,5);c.fillRect(px+ts-8,cy-6,2,5);
+    neonBorder('#39ff14',1);
+  }else if(t===T_JEEP){
+    // Flat garage, JP stripe, parked jeep
+    flatBase('#0e0e08','#ffcc00');
+    c.fillStyle='#1a1a10';c.fillRect(px+2,py+ts*0.32,ts-4,ts*0.6);
+    // Striped awning
+    for(var jst=0;jst<6;jst++){
+      c.fillStyle=jst%2===0?'#ccaa00':'#1a1400';
+      c.fillRect(px+2+jst*(ts-4)/6,py+2,(ts-4)/6,Math.floor(ts*0.28));
+    }
+    // Jeep flat
+    var jx2=px+4,jy2=py+Math.floor(ts*0.42),jw2=ts-8,jh2=Math.floor(ts*0.26);
+    c.fillStyle='#2d5a00';c.fillRect(jx2,jy2,jw2,jh2);
+    c.fillStyle='#1e3e00';c.fillRect(jx2+Math.floor(jw2*0.15),jy2-Math.floor(ts*0.14),Math.floor(jw2*0.52),Math.floor(ts*0.15));
+    c.fillStyle='rgba(150,220,255,0.5)';c.fillRect(jx2+Math.floor(jw2*0.17),jy2-Math.floor(ts*0.12),Math.floor(jw2*0.2),Math.floor(ts*0.1));
+    // Wheels
+    c.fillStyle='#111';
+    c.beginPath();c.arc(jx2+Math.floor(jw2*0.2),jy2+jh2,Math.floor(ts*0.08),0,Math.PI*2);c.fill();
+    c.beginPath();c.arc(jx2+Math.floor(jw2*0.78),jy2+jh2,Math.floor(ts*0.08),0,Math.PI*2);c.fill();
+    // JP stripe on door
+    c.shadowColor='#ffcc00';c.shadowBlur=5;
+    c.fillStyle='#ffcc00';c.fillRect(jx2+Math.floor(jw2*0.3),jy2,Math.floor(jw2*0.4),2);
+    c.font='bold '+Math.max(4,Math.floor(ts*0.12))+'px monospace';
+    c.textAlign='center';c.textBaseline='middle';c.fillText('JP',jx2+Math.floor(jw2*0.52),jy2+Math.floor(jh2*0.52));
+    c.shadowBlur=0;
+    neonBorder('#ffcc00');
+  }else if(t===T_RANGER){
+    // Ranger Station: military green building, jeep outside, searchlight
+    flatBase('#080e06','#88cc44');
+    c.fillStyle='#0e1a08';c.fillRect(px+3,py+5,ts-6,ts-7);
+    // Roof — camo stripes
+    var camoCols=['#4a6a20','#3a5a18','#5a7a28','#2a4a10'];
+    for(var rc=0;rc<4;rc++){c.fillStyle=camoCols[rc];c.fillRect(px+3+rc*(ts-6)/4,py+3,(ts-6)/4,5);}
+    // Windows
+    c.fillStyle='rgba(200,230,150,0.5)';c.fillRect(px+5,py+10,6,6);c.fillRect(px+ts-11,py+10,6,6);
+    c.shadowColor='#ccff66';c.shadowBlur=4;
+    c.fillStyle='rgba(180,220,100,0.4)';c.fillRect(px+5,py+10,6,6);c.fillRect(px+ts-11,py+10,6,6);
+    c.shadowBlur=0;
+    // Door with JP Rangers text
+    c.fillStyle='#2a4010';c.fillRect(cx-4,py+ts-9,8,9);
+    c.fillStyle='#88cc44';c.font='bold '+Math.max(3,Math.floor(ts*0.09))+'px monospace';
+    c.textAlign='center';c.textBaseline='middle';c.fillText('RANGERS',cx,py+ts-14);
+    // Animated searchlight beam
+    var slt=Date.now()/900;
+    c.save();c.translate(cx,py+4);c.rotate(Math.sin(slt)*0.8);
+    c.fillStyle='rgba(200,255,100,0.1)';
+    c.beginPath();c.moveTo(0,0);c.lineTo(-12,ts);c.lineTo(12,ts);c.closePath();c.fill();
+    c.restore();
+    // Ranger hat icon top-right
+    c.shadowColor='#88cc44';c.shadowBlur=6;
+    c.font=Math.max(8,Math.floor(ts*0.28))+'px serif';
+    c.textAlign='center';c.textBaseline='middle';
+    c.fillText('🪖',px+ts-9,py+7);
+    c.shadowBlur=0;
+    // Neon border camo green
+    c.shadowColor='#88cc44';c.shadowBlur=7;
+    c.strokeStyle='#88cc44';c.lineWidth=1.5;c.strokeRect(px+2,py+2,ts-4,ts-4);
+    c.shadowBlur=0;c.lineWidth=1;
+  }else if(t===T_WORKSHOP){
+    // Industrial flat, gear icon, orange neon
+    flatBase('#0e0a04','#ffb300');
+    c.fillStyle='#1e1608';c.fillRect(px+3,py+5,ts-6,ts-7);
+    // Corrugated roof stripes
+    for(var cr2=0;cr2<5;cr2++){c.fillStyle=cr2%2?'#3a2e18':'#2a2010';c.fillRect(px+3+cr2*(ts-6)/5,py+3,(ts-6)/5,5);}
+    // Gear icon — flat
+    c.fillStyle='#ffb300';c.shadowColor='#ffb300';c.shadowBlur=6;
+    c.beginPath();c.arc(cx,cy,Math.floor(ts*0.22),0,Math.PI*2);c.fill();
+    c.fillStyle='#0e0a04';c.beginPath();c.arc(cx,cy,Math.floor(ts*0.12),0,Math.PI*2);c.fill();
+    // Gear teeth
+    c.fillStyle='#ffb300';
+    for(var gt=0;gt<8;gt++){var ga=gt/8*Math.PI*2;c.fillRect(cx+Math.cos(ga)*Math.floor(ts*0.2)-2,cy+Math.sin(ga)*Math.floor(ts*0.2)-2,4,4);}
+    c.shadowBlur=0;
+    // Spark animation
+    var spk=0.5+0.5*Math.abs(Math.sin(wt*6));
+    c.fillStyle='rgba(255,200,50,'+spk+')';c.beginPath();c.arc(cx+8,py+ts-9,2,0,Math.PI*2);c.fill();
+    c.fillStyle='rgba(255,120,20,'+spk+')';c.beginPath();c.arc(cx-6,py+ts-7,1.5,0,Math.PI*2);c.fill();
+    neonBorder('#ffb300');
+  }else{
+    var bgMap={9:'#1a1008',10:'#241808',11:'#0e2010',12:'#06101c',13:'#101808',14:'#1a0c04',15:'#101808',16:'#060e14',17:'#060e1e',31:'#141c08',32:'#0e1c0c',33:'#0e1808',34:'#0a1606'};
+    c.fillStyle=bgMap[t]||'#101810';c.fillRect(px,py,ts,ts);
+    c.fillStyle='rgba(57,255,20,0.06)';c.fillRect(px,py,ts,ts);
+    c.font=Math.floor(ts*.48)+'px serif';c.textAlign='center';c.textBaseline='middle';
+    c.fillText(BD[ID2K[t]]?BD[ID2K[t]].icon:'?',px+ts/2,py+ts/2+1);
+    // Subtle neon border on dino tiles
+    if(t>=DINO_MIN&&t<=DINO_MAX){c.shadowColor='#39ff14';c.shadowBlur=4;c.strokeStyle='rgba(57,255,20,0.3)';c.lineWidth=1;c.strokeRect(px+1,py+1,ts-2,ts-2);c.shadowBlur=0;c.lineWidth=1;}
+  }
+  c.textAlign='left';c.textBaseline='top';
+}
+
+var G={},grid=[],enclosures=[],selectedTool='demolish';
+var camX=0,camY=0,dragging=false,dragSX=0,dragSY=0,camSX=0,camSY=0,didDrag=false;
+var hoverX=-1,hoverY=-1,visHistory=[],incHistory=[],paused=false;
+var selectedTileX=-1,selectedTileY=-1; // clicked existing building to show range
+var fugLayer=null,fugCtx2=null,fugs=[],FICONS=['🦖','🦕','🐉','🦅'];
+var cars=[],carTick=0,rafId=null,buildFlash=null;
+var autoAdvance=false,autoSpeed=1,autoTimer=0,lastFrameTime=0;
+var autoSpeeds=[1,2,4],autoSpeedIdx=0;
+
+// ── RANGER SYSTEM ──
+var rangerVehicles=[]; // animated ranger jeeps chasing loose dinos on screen
+
+function getRangerStations(){
+  var stations=[];
+  for(var bi=0;bi<buildings.length;bi++){
+    if(buildings[bi].key==='ranger'){
+      stations.push({
+        cx:buildings[bi].bx+buildings[bi].bw/2,
+        cy:buildings[bi].by+buildings[bi].bh/2,
+      });
+    }
+  }
+  // also single-tile (shouldn't exist since bw:2 but safety)
+  for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++)
+    if(grid[j][i]===T_RANGER)stations.push({cx:i+0.5,cy:j+0.5});
+  return stations;
+}
+
+function rangerCatchDinos(){
+  if(looseDinos.length===0)return;
+  var stations=getRangerStations();
+  if(stations.length===0)return;
+  var range=BD.ranger.catchRange||10;
+  var perDay=BD.ranger.catchPerDay||2;
+  // Each station catches up to perDay dinos if within range
+  for(var si=0;si<stations.length;si++){
+    var st=stations[si];
+    var caught=0;
+    for(var di=looseDinos.length-1;di>=0&&caught<perDay;di--){
+      var d=looseDinos[di];
+      var dtx=(d.x+camX)/TS, dty=(d.y+camY)/TS;
+      var dx=dtx-st.cx, dy=dty-st.cy;
+      var dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<=range){
+        var b=BD[d.key];
+        log('🪖 Rangers catturano '+b.lbl+'! Il dino è neutralizzato.','g');
+        snd('mission');
+        looseDinos.splice(di,1);
+        rangerVehicles.push({
+          x:st.cx*TS-camX, y:st.cy*TS-camY,
+          tx:d.x, ty:d.y,
+          age:0, maxAge:80,
+        });
+        caught++;
+      }
+    }
+  }
+}
+
+function updateRangerVehicles(){
+  for(var i=rangerVehicles.length-1;i>=0;i--){
+    var rv=rangerVehicles[i];rv.age++;
+    var dx=rv.tx-rv.x,dy=rv.ty-rv.y,d=Math.sqrt(dx*dx+dy*dy);
+    if(d>2){rv.x+=dx/d*3;rv.y+=dy/d*3;}
+    if(rv.age>rv.maxAge)rangerVehicles.splice(i,1);
+  }
+}
+
+function drawRangerVehicles(){
+  for(var i=0;i<rangerVehicles.length;i++){
+    var rv=rangerVehicles[i];
+    var alpha=1-(rv.age/rv.maxAge);
+    ctx.save();ctx.globalAlpha=alpha;
+    ctx.translate(rv.x-camX,rv.y-camY);
+    var dx=rv.tx-rv.x,dy=rv.ty-rv.y,ang=Math.atan2(dy,dx);
+    ctx.rotate(ang);
+    // Ranger jeep — olive drab
+    ctx.fillStyle='#4a7020';ctx.fillRect(-10,-5,20,10);
+    ctx.fillStyle='#2a4a10';ctx.fillRect(-4,-8,10,8);
+    ctx.fillStyle='rgba(200,230,150,0.6)';ctx.fillRect(-2,-7,6,6);
+    ctx.fillStyle='#111';
+    ctx.beginPath();ctx.arc(-6,5,3,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(6,5,3,0,Math.PI*2);ctx.fill();
+    // Siren flash
+    var flash=Math.abs(Math.sin(Date.now()/100));
+    ctx.fillStyle='rgba(255,50,50,'+flash+')';ctx.fillRect(-3,-9,3,3);
+    ctx.fillStyle='rgba(50,100,255,'+flash+')';ctx.fillRect(1,-9,3,3);
+    ctx.globalAlpha=1;ctx.restore();
+  }
+}
+
+function drawRangerRanges(){
+  var stations=getRangerStations();
+  if(stations.length===0||looseDinos.length===0)return;
+  var range=BD.ranger.catchRange||10;
+  for(var si=0;si<stations.length;si++){
+    var st=stations[si];
+    var px=st.cx*TS,py=st.cy*TS;
+    var radius=range*TS;
+    ctx.save();
+    ctx.beginPath();ctx.arc(px,py,radius,0,Math.PI*2);
+    ctx.fillStyle='rgba(136,204,68,0.06)';ctx.fill();
+    ctx.strokeStyle='#88cc44';ctx.lineWidth=1.5;
+    ctx.setLineDash([5,5]);ctx.stroke();
+    ctx.setLineDash([]);ctx.lineWidth=1;
+    // Center dot
+    ctx.fillStyle='#88cc44';ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);ctx.fill();
+    // Label
+    ctx.font='bold 9px monospace';ctx.fillStyle='#88cc44';
+    ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText('🪖 raggio '+range,px,st.cy*TS-range*TS-12);
+    ctx.textAlign='left';ctx.textBaseline='top';
+    ctx.restore();
+  }
+}
+
+// ── LOOSE DINO SYSTEM ──
+var looseDinos=[];
+
+// ── INFIRMARY HELPERS ──
+function getInfirmariesInRange(cx,cy,range){
+  var inf=[];
+  // single-tile infirmaries
+  for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++){
+    if(grid[j][i]===T_INFIRMARY){
+      var dx=i-cx,dy=j-cy;
+      if(Math.sqrt(dx*dx+dy*dy)<=range)inf.push({x:i,y:j});
+    }
+  }
+  return inf;
+}
+
+// Returns victim reduction multiplier based on nearby infirmaries
+function infirmaryVictimMult(encCx,encCy){
+  var range=BD.infirmary.cureRange||14;
+  var count=getInfirmariesInRange(encCx,encCy,range).length;
+  if(count===0)return 1.0;
+  // Each infirmary reduces victims by 40%, stacks diminishingly
+  return Math.max(0.2, Math.pow(0.6, count));
+}
+
+// Extra cure speed from nearby infirmaries
+function infirmaryCureBonus(enc){
+  var ecx=enc.bx+enc.sz/2, ecy=enc.by+enc.sz/2;
+  var range=BD.infirmary.cureRange||14;
+  var count=getInfirmariesInRange(ecx,ecy,range).length;
+  return count*(BD.infirmary.cureSpeed||2);
+}
+
+// ── WEATHER SYSTEM ──
+// weather: 'sunny' | 'cloudy' | 'rain' | 'storm'
+// stormDaysLeft: countdown for ongoing storm
+var weather='sunny', weatherDaysLeft=0, stormDaysLeft=0;
+var WEATHER_ICONS={sunny:'☀️',cloudy:'⛅',rain:'🌧',storm:'🌀'};
+var WEATHER_VIS={sunny:1.0,cloudy:0.9,rain:0.65,storm:0.3};
+var WEATHER_SAT={sunny:0,cloudy:-2,rain:-8,storm:-20};
+
+// Rain/cloud particle layer for visual effect
+var weatherParticles=[];
+
+function advanceWeather(){
+  if(G.day<=10){weather='sunny';weatherDaysLeft=1;return;}
+  weatherDaysLeft--;
+  if(weatherDaysLeft>0)return;
+  // Pick next weather — storms rarer, longer sunny streaks
+  var r=Math.random();
+  if(r<0.45){weather='sunny';weatherDaysLeft=Math.floor(Math.random()*4)+2;}
+  else if(r<0.72){weather='cloudy';weatherDaysLeft=Math.floor(Math.random()*3)+1;}
+  else if(r<0.90){weather='rain';weatherDaysLeft=Math.floor(Math.random()*3)+1;}
+  else{weather='storm';weatherDaysLeft=Math.floor(Math.random()*2)+1;stormDaysLeft=weatherDaysLeft;}
+  log(WEATHER_ICONS[weather]+' Meteo: '+{sunny:'Sole ☀️',cloudy:'Nuvoloso ⛅',rain:'Pioggia 🌧',storm:'TEMPESTA TROPICALE 🌀'}[weather]+(weather==='storm'?' — DANNI IN ARRIVO!':''),weather==='storm'?'d':weather==='rain'?'w':'i');
+}
+
+function applyWeatherEffects(){
+  // Visitor and satisfaction modifiers applied in recalc via G.weatherVisMult
+  G.weatherVisMult=WEATHER_VIS[weather]||1.0;
+  G.weatherSatMod=WEATHER_SAT[weather]||0;
+  if(weather==='storm'){
+    // Damage 1-2 buildings/enclosures (not 1-3)
+    var dmgCount=Math.floor(Math.random()*2)+1;
+    for(var d=0;d<dmgCount;d++){
+      if(enclosures.length>0&&Math.random()<0.5){
+        var enc=enclosures[Math.floor(Math.random()*enclosures.length)];
+        var dmg=10+Math.floor(Math.random()*20);
+        enc.energy=Math.max(0,(enc.energy||100)-dmg);
+        log('🌀 Tempesta danneggia recinto '+BD[enc.key].lbl+': -'+dmg+'% energia','d');
+      } else if(buildings.length>0){
+        var bld=buildings[Math.floor(Math.random()*buildings.length)];
+        var bdmg=8+Math.floor(Math.random()*15);
+        bld.energy=Math.max(0,(bld.energy||100)-bdmg);
+        log('🌀 Tempesta danneggia '+BD[bld.key].lbl+': -'+bdmg+'% energia','d');
+      }
+    }
+    // Panic: capped at $8k max to avoid instant ruin
+    var panic=Math.min(8000,Math.floor(G.vis*8+1500));
+    G.money=Math.max(0,G.money-panic);
+    log('🌀 Visitatori in fuga per la tempesta! -$'+panic.toLocaleString(),'d');
+  }
+}
+
+function spawnWeatherParticles(){
+  if(weather==='sunny'){weatherParticles=[];return;}
+  var vp=document.getElementById('viewport');
+  if(!vp)return;
+  var W=vp.clientWidth,H=vp.clientHeight;
+  var count=weather==='storm'?8:weather==='rain'?5:2;
+  for(var i=0;i<count;i++){
+    weatherParticles.push({
+      x:Math.random()*W,y:-10,
+      vx:weather==='storm'?(Math.random()-0.3)*3:0.2,
+      vy:weather==='storm'?6+Math.random()*4:4+Math.random()*3,
+      life:1.0,
+      r:weather==='storm'?Math.random()*2+1:1,
+    });
+  }
+  // trim
+  if(weatherParticles.length>300)weatherParticles.splice(0,weatherParticles.length-300);
+}
+
+function updateWeatherParticles(){
+  var vp=document.getElementById('viewport');
+  if(!vp)return;
+  var W=vp.clientWidth,H=vp.clientHeight;
+  for(var i=weatherParticles.length-1;i>=0;i--){
+    var p=weatherParticles[i];
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.y>H+10||p.x<-20||p.x>W+20)weatherParticles.splice(i,1);
+  }
+}
+
+function drawWeatherOverlay(){
+  if(weather==='sunny')return;
+  var vp=document.getElementById('viewport');if(!vp)return;
+  var W=vp.clientWidth,H=vp.clientHeight;
+  // Overlay tint — always shown
+  var tint={cloudy:'rgba(80,100,120,0.08)',rain:'rgba(40,60,100,0.18)',storm:'rgba(20,20,60,0.35)'}[weather];
+  if(tint){ctx.save();ctx.fillStyle=tint;ctx.fillRect(-camX,-camY,W,H);ctx.restore();}
+  if(IS_IOS)return; // skip particles and lightning on iOS
+  // Particles
+  ctx.save();
+  for(var i=0;i<weatherParticles.length;i++){
+    var p=weatherParticles[i];
+    var cx2=p.x-camX,cy2=p.y-camY;
+    if(weather==='rain'||weather==='storm'){
+      ctx.strokeStyle=weather==='storm'?'rgba(150,180,255,0.7)':'rgba(120,160,220,0.5)';
+      ctx.lineWidth=p.r;
+      ctx.beginPath();ctx.moveTo(cx2,cy2);ctx.lineTo(cx2+p.vx*2,cy2+p.vy*2);ctx.stroke();
+    } else {
+      ctx.fillStyle='rgba(200,220,240,0.3)';
+      ctx.beginPath();ctx.arc(cx2,cy2,p.r*3,0,Math.PI*2);ctx.fill();
+    }
+  }
+  ctx.lineWidth=1;ctx.restore();
+  // Lightning flash for storm
+  if(weather==='storm'&&Math.random()<0.004){
+    ctx.save();ctx.fillStyle='rgba(220,220,255,0.12)';ctx.fillRect(-camX,-camY,W,H);ctx.restore();
+  }
+}
+
+// ── DISEASE SYSTEM ──
+// Each enclosure can have: {sick:false, disease:'', daysLeft:0, severity:0}
+// Diseases spread from lab-less parks, cured by labs in range
+var DISEASES=[
+  {id:'flu',      name:'Influenza Dino',   decay:3,  visHit:0.7, secHit:0,   spread:0.1, cure:5},
+  {id:'parasite', name:'Parassiti',         decay:5,  visHit:0.5, secHit:-1,  spread:0.15,cure:8},
+  {id:'virus',    name:'Virus Nublar',      decay:8,  visHit:0.3, secHit:-2,  spread:0.08,cure:12},
+  {id:'rage',     name:'Sindrome da Rabbia',decay:10, visHit:0.6, secHit:-4,  spread:0.05,cure:15},
+];
+
+function getLabsAndInfirmariesInRange(enc,range){
+  var found=[];var ecx=enc.bx+enc.sz/2,ecy=enc.by+enc.sz/2;
+  for(var bi=0;bi<buildings.length;bi++){
+    var bkey=buildings[bi].key;
+    if(bkey==='lab'||bkey==='infirmary'){
+      var lx=buildings[bi].bx+buildings[bi].bw/2,ly=buildings[bi].by+buildings[bi].bh/2;
+      var dx=lx-ecx,dy=ly-ecy;
+      if(Math.sqrt(dx*dx+dy*dy)<=range)found.push(buildings[bi]);
+    }
+  }
+  // Also single-tile infirmary
+  for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++){
+    if(grid[j][i]===T_INFIRMARY){
+      var dx2=i+0.5-ecx,dy2=j+0.5-ecy;
+      if(Math.sqrt(dx2*dx2+dy2*dy2)<=range)found.push({key:'infirmary',x:i,y:j});
+    }
+  }
+  return found;
+}
+
+function getLabsInRange(enc,range){
+  // Keep backwards compat — now includes infirmary too
+  return getLabsAndInfirmariesInRange(enc,range);
+}
+
+function processDiseases(){
+  if(enclosures.length===0)return;
+  // Infection chance: much lower — 1% base, 0.5% with lab/infirmary nearby
+  for(var i=0;i<enclosures.length;i++){
+    var enc=enclosures[i];
+    if(!enc.disease){
+      var hasCure=getLabsAndInfirmariesInRange(enc,14).length>0;
+      var chance=(hasCure?0.005:0.01)*(weather==='rain'?1.4:weather==='storm'?1.8:1.0);
+      if(Math.random()<chance){
+        var dis=DISEASES[Math.floor(Math.random()*DISEASES.length)];
+        enc.disease=dis.id;enc.diseaseDays=dis.cure;enc.diseaseName=dis.name;
+        log('🦠 '+BD[enc.key].lbl+' ha contratto '+dis.name+'! Cura con 🧬 lab o 🏥 infermeria.','d');
+        snd('escape');
+      }
+    }
+  }
+  // Spread — slower and shorter range
+  for(var i=0;i<enclosures.length;i++){
+    var src=enclosures[i];if(!src.disease)continue;
+    var dis=DISEASES.filter(function(d){return d.id===src.disease;})[0];if(!dis)continue;
+    for(var j=0;j<enclosures.length;j++){
+      if(i===j||enclosures[j].disease)continue;
+      var tgt=enclosures[j];
+      var dx=tgt.bx-src.bx,dy=tgt.by-src.by;
+      var dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<5&&Math.random()<dis.spread*0.5){
+        tgt.disease=dis.id;tgt.diseaseDays=dis.cure;tgt.diseaseName=dis.name;
+        log('🦠 '+dis.name+' si diffonde a '+BD[tgt.key].lbl+'!','d');
+      }
+    }
+  }
+  // Auto-cure: lab cures at full speed, infirmary at half speed
+  for(var i=enclosures.length-1;i>=0;i--){
+    var enc=enclosures[i];if(!enc.disease)continue;
+    var dis=DISEASES.filter(function(d){return d.id===enc.disease;})[0];if(!dis)continue;
+    var curers=getLabsAndInfirmariesInRange(enc,14);
+    if(curers.length>0){
+      var hasLab=curers.filter(function(c){return c.key==='lab';}).length>0;
+      // Lab cures 1 day/turn, infirmary cures 0.5 day/turn (takes 2 turns)
+      var cureRate=hasLab?1:0.5;
+      enc.diseaseDaysFrac=(enc.diseaseDaysFrac||0)+cureRate;
+      if(enc.diseaseDaysFrac>=1){
+        enc.diseaseDays-=Math.floor(enc.diseaseDaysFrac);
+        enc.diseaseDaysFrac-=Math.floor(enc.diseaseDaysFrac);
+      }
+      var curer=hasLab?'🧬 Lab':'🏥 Infermeria';
+      if(enc.diseaseDays<=0){
+        log(curer+' cura '+dis.name+' in '+BD[enc.key].lbl+'! ✓','g');
+        enc.disease=null;enc.diseaseDays=0;enc.diseaseName=null;enc.diseaseDaysFrac=0;
+        snd('mission');
+      } else {
+        log(curer+' tratta '+dis.name+' in '+BD[enc.key].lbl+': '+enc.diseaseDays+'g rimasti','i');
+      }
+    } else {
+      // No cure nearby — disease worsens
+      enc.energy=Math.max(0,(enc.energy||100)-dis.decay);
+      if(enc.diseaseDays>0)enc.diseaseDays--;
+      if(enc.diseaseDays%2===0)
+        log('🦠 '+dis.name+' peggiora in '+BD[enc.key].lbl+' — -'+dis.decay+'% energia!','d');
+    }
+  }
+}
+
+// ── BUILDING ENERGY SYSTEM ──
+// Multi-tile buildings store energy on the building object (bld.energy)
+// Single-tile buildings stored in this map: "x,y" -> energy 0-100
+var singleBldEnergy={};
+
+// Tiles that are infrastructure (exempt from wear — roads, fences, gates)
+var WEAR_EXEMPT={};
+WEAR_EXEMPT[T_ROAD]=1;WEAR_EXEMPT[T_FENCE]=1;WEAR_EXEMPT[T_GATE]=1;
+WEAR_EXEMPT[T_EMPTY]=1;WEAR_EXEMPT[T_CLEAR]=1;WEAR_EXEMPT[T_JUNGLE]=1;
+WEAR_EXEMPT[T_ENC_MARKER]=1;WEAR_EXEMPT[T_BLD_MARKER]=1;WEAR_EXEMPT[T_OCEAN]=1;
+// Workshop doesn't decay (it does the repairing)
+WEAR_EXEMPT[T_WORKSHOP]=1;
+
+function getBldEnergy(bld){return bld.energy!==undefined?bld.energy:100;}
+function getSingleEnergy(x,y){var k=x+','+y;return singleBldEnergy[k]!==undefined?singleBldEnergy[k]:100;}
+
+function decayBuildingEnergy(){
+  // Multi-tile buildings
+  for(var bi=0;bi<buildings.length;bi++){
+    var bld=buildings[bi];
+    if(bld.key==='workshop')continue; // workshop never decays
+    if(bld.energy===undefined)bld.energy=100;
+    bld.energy=Math.max(0,bld.energy-1.5);
+    if(bld.energy<=25&&bld.energy>0)log('⚠ Usura: '+BD[bld.key].lbl+' al '+Math.round(bld.energy)+'%','w');
+  }
+  // Single-tile buildings
+  for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++){
+    var t=grid[j][i];
+    if(WEAR_EXEMPT[t])continue;
+    var bk=ID2K[t];if(!bk)continue;
+    var k=i+','+j;
+    if(singleBldEnergy[k]===undefined)singleBldEnergy[k]=100;
+    singleBldEnergy[k]=Math.max(0,singleBldEnergy[k]-1.5);
+    if(singleBldEnergy[k]<=25&&singleBldEnergy[k]>0)log('⚠ Usura: '+BD[bk].lbl+' ('+i+','+j+') al '+Math.round(singleBldEnergy[k])+'%','w');
+  }
+}
+
+function workshopsInRangeXY(cx,cy){
+  var range=(BD.workshop&&BD.workshop.repairRange)||8;
+  var ws=[];
+  for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++){
+    if(grid[j][i]===T_WORKSHOP){var dx=i-cx,dy=j-cy;if(Math.sqrt(dx*dx+dy*dy)<=range)ws.push({x:i,y:j});}
+  }
+  // Also check workshop multi-tile buildings
+  for(var bi=0;bi<buildings.length;bi++){
+    if(buildings[bi].key==='workshop'){
+      var wx=buildings[bi].bx+buildings[bi].bw/2,wy=buildings[bi].by+buildings[bi].bh/2;
+      var dx2=wx-cx,dy2=wy-cy;
+      if(Math.sqrt(dx2*dx2+dy2*dy2)<=range)ws.push({x:wx,y:wy});
+    }
+  }
+  return ws;
+}
+
+function autoRepairBuildings(){
+  var repairPerDay=BD.workshop.repairPerDay||20;
+  var repairCost=BD.workshop.repairCost||500;
+  // Repair multi-tile buildings
+  for(var bi=0;bi<buildings.length;bi++){
+    var bld=buildings[bi];if(bld.key==='workshop')continue;
+    if(getBldEnergy(bld)>=100)continue;
+    var bcx=bld.bx+bld.bw/2,bcy=bld.by+bld.bh/2;
+    if(workshopsInRangeXY(bcx,bcy).length===0)continue;
+    if(G.money<repairCost){log('🔧 Fondi insufficienti per riparare '+BD[bld.key].lbl,'w');continue;}
+    G.money-=repairCost;
+    var gained=Math.min(100-getBldEnergy(bld),repairPerDay);
+    bld.energy=Math.min(100,(bld.energy||0)+gained);
+    if(gained>3)log('🔧 Officina ripara '+BD[bld.key].lbl+': +'+Math.round(gained)+'% (-$'+repairCost+')','i');
+  }
+  // Repair single-tile buildings
+  for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++){
+    var t=grid[j][i];if(WEAR_EXEMPT[t])continue;
+    var bk=ID2K[t];if(!bk)continue;
+    var k=i+','+j;
+    var en=singleBldEnergy[k]!==undefined?singleBldEnergy[k]:100;
+    if(en>=100)continue;
+    if(workshopsInRangeXY(i,j).length===0)continue;
+    if(G.money<repairCost){log('🔧 Fondi insufficienti per riparare '+BD[bk].lbl,'w');continue;}
+    G.money-=repairCost;
+    var gained2=Math.min(100-en,repairPerDay);
+    singleBldEnergy[k]=Math.min(100,en+gained2);
+    if(gained2>3)log('🔧 Officina ripara '+BD[bk].lbl+': +'+Math.round(gained2)+'% (-$'+repairCost+')','i');
+  }
+}
+
+function countJeepStations(){
+  var n=0;
+  for(var bi=0;bi<buildings.length;bi++){if(buildings[bi].key==='jeep')n++;}
+  // also count single-tile placements (shouldn't happen since bw:2 but safety)
+  for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++)if(grid[j][i]===T_JEEP)n++;
+  return n;
+}
+
+function findGateCell(){
+  for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++)if(grid[j][i]===T_GATE)return{x:i,y:j};
+  return null;
+}
+
+function spawnJeepTour(){
+  var gate=findGateCell();if(!gate)return;
+  // Start from a road cell adjacent to gate
+  var dirs=[[1,0],[-1,0],[0,1],[0,-1]],startCell=null,startDir=null;
+  for(var d=0;d<dirs.length;d++){
+    var nx=gate.x+dirs[d][0],ny=gate.y+dirs[d][1];
+    if(nx>=0&&nx<MAP_W&&ny>=0&&ny<MAP_H&&grid[ny][nx]===T_ROAD){
+      startCell={x:nx,y:ny};startDir=dirs[d];break;
+    }
+  }
+  if(!startCell){startCell={x:gate.x,y:gate.y};startDir=[1,0];}
+  jeepTours.push({
+    x:startCell.x*TS+TS/2,
+    y:startCell.y*TS+TS/2,
+    dx:startDir[0],dy:startDir[1],
+    speed:0.55,
+    age:0,stuck:0,
+    // JP iconic colors: green body with yellow number
+    color:'#336600',
+    numColor:'#ffcc00',
+  });
+}
+
+function updateJeepTours(){
+  jeepTick++;
+  var stations=countJeepStations();
+  // Each station supports up to 2 jeeps; spawn interval 180 ticks per station
+  var maxJeeps=stations*2;
+  var spawnInterval=Math.max(120,300-stations*30);
+  if(stations>0&&jeepTick%spawnInterval===0&&jeepTours.length<maxJeeps)spawnJeepTour();
+
+  for(var i=jeepTours.length-1;i>=0;i--){
+    var c=jeepTours[i];c.age++;
+    var nx=c.x+c.dx*c.speed,ny=c.y+c.dy*c.speed;
+    var ci=Math.floor(c.x/TS),cj=Math.floor(c.y/TS);
+    var cellCX=ci*TS+TS/2,cellCY=cj*TS+TS/2;
+    if(c.dx!==0){c.y+=(cellCY-c.y)*0.2;ny=c.y;}
+    if(c.dy!==0){c.x+=(cellCX-c.x)*0.2;nx=c.x;}
+    var nci=Math.floor(nx/TS),ncj=Math.floor(ny/TS);
+    var onRoad=nci>=0&&nci<MAP_W&&ncj>=0&&ncj<MAP_H&&(grid[ncj][nci]===T_ROAD||grid[ncj][nci]===T_GATE);
+    if(onRoad){
+      c.x=nx;c.y=ny;c.stuck=0;
+      var distX=Math.abs(c.x-cellCX),distY=Math.abs(c.y-cellCY);
+      if(distX<c.speed+1&&distY<c.speed+1){
+        var ahead=[[1,0],[-1,0],[0,1],[0,-1]].filter(function(d){
+          if(d[0]===-c.dx&&d[1]===-c.dy)return false;
+          var tx=ci+d[0],ty=cj+d[1];
+          return tx>=0&&tx<MAP_W&&ty>=0&&ty<MAP_H&&(grid[ty][tx]===T_ROAD||grid[ty][tx]===T_GATE);
+        });
+        var straight=ahead.filter(function(d){return d[0]===c.dx&&d[1]===c.dy;});
+        if(straight.length>0&&Math.random()<0.7){c.dx=straight[0][0];c.dy=straight[0][1];}
+        else if(ahead.length>0){var pick=ahead[Math.floor(Math.random()*ahead.length)];c.dx=pick[0];c.dy=pick[1];}
+        else{c.dx=-c.dx;c.dy=-c.dy;}
+      }
+    }else{
+      c.stuck++;if(c.stuck>60){jeepTours.splice(i,1);continue;}
+      var any=[[1,0],[-1,0],[0,1],[0,-1]].filter(function(d){var tx=ci+d[0],ty=cj+d[1];return tx>=0&&tx<MAP_W&&ty>=0&&ty<MAP_H&&(grid[ty][tx]===T_ROAD||grid[ty][tx]===T_GATE);});
+      if(any.length>0){var a2=any[Math.floor(Math.random()*any.length)];c.dx=a2[0];c.dy=a2[1];}
+    }
+    if(c.age>5000)jeepTours.splice(i,1);
+  }
+}
+
+function drawJeepTours(){
+  for(var i=0;i<jeepTours.length;i++){
+    var c=jeepTours[i];
+    var cw=Math.max(10,Math.floor(TS*0.46)),ch=Math.max(6,Math.floor(TS*0.26));
+    ctx.save();ctx.translate(c.x,c.y);
+    var angle=c.dx===1?0:c.dx===-1?Math.PI:c.dy===1?Math.PI/2:-Math.PI/2;
+    ctx.rotate(angle);
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(-cw/2+2,ch/2,cw,3);
+    // Body
+    ctx.fillStyle=c.color;ctx.fillRect(-cw/2,-ch/2,cw,ch);
+    // Cabin / roof
+    ctx.fillStyle='#224400';ctx.fillRect(-cw/2+Math.floor(cw*0.15),-ch/2-Math.floor(ch*0.6),Math.floor(cw*0.55),Math.floor(ch*0.65));
+    // Windshield
+    ctx.fillStyle='rgba(150,220,255,0.6)';ctx.fillRect(-cw/2+Math.floor(cw*0.17),-ch/2-Math.floor(ch*0.55),Math.floor(cw*0.22),Math.floor(ch*0.5));
+    // Front grille / bumper
+    ctx.fillStyle='#aaaaaa';ctx.fillRect(cw/2-2,-ch/2+1,2,ch-2);
+    // Headlights
+    ctx.fillStyle='#ffffcc';ctx.fillRect(cw/2-3,-ch/2+1,2,2);ctx.fillRect(cw/2-3,ch/2-3,2,2);
+    // Wheels
+    ctx.fillStyle='#111';
+    ctx.beginPath();ctx.arc(-cw/2+Math.floor(cw*0.2),ch/2,Math.floor(TS*0.09),0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cw/2-Math.floor(cw*0.2),ch/2,Math.floor(TS*0.09),0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#555';
+    ctx.beginPath();ctx.arc(-cw/2+Math.floor(cw*0.2),ch/2,Math.floor(TS*0.05),0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cw/2-Math.floor(cw*0.2),ch/2,Math.floor(TS*0.05),0,Math.PI*2);ctx.fill();
+    // JP stripe + number on door
+    ctx.fillStyle='#ffcc00';ctx.fillRect(-cw/2+Math.floor(cw*0.15),-ch/2,Math.floor(cw*0.5),2);
+    ctx.font='bold '+Math.max(4,Math.floor(TS*0.13))+'px monospace';
+    ctx.fillStyle=c.numColor;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('JP',0,0);
+    ctx.restore();
+  }
+}
+
+// ── iOS / SAFARI DETECTION ──
+var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+             (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+// On iOS, shadowBlur is extremely slow — disable it globally
+var _origShadowBlurDesc = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype,'shadowBlur');
+if(IS_IOS){
+  try{
+    Object.defineProperty(CanvasRenderingContext2D.prototype,'shadowBlur',{
+      get:function(){return 0;},
+      set:function(){},
+      configurable:true
+    });
+  }catch(e){}
+}
+
+var AC=null;
+var _audioUnlocked=false;
+function unlockAudio(){
+  if(_audioUnlocked)return;
+  try{
+    AC=new(window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended')AC.resume();
+    _audioUnlocked=true;
+  }catch(e){}
+}
+// Unlock on first touch or click
+document.addEventListener('touchstart',unlockAudio,{once:true,passive:true});
+document.addEventListener('click',unlockAudio,{once:true});
+
+function getAC(){
+  if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  return AC;
+}
+function beep(f,d,t,v){var ac=getAC();if(!ac)return;try{if(ac.state==='suspended')ac.resume();var o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type=t||'square';o.frequency.value=f;g.gain.value=v||0.07;g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+d);o.start();o.stop(ac.currentTime+d);}catch(e){}}
+function snd(type){try{if(type==='build'){beep(440,.06);setTimeout(function(){beep(660,.08);},70);}else if(type==='demo'){beep(220,.1,'sawtooth');}else if(type==='mission'){beep(523,.1);setTimeout(function(){beep(659,.1);},110);setTimeout(function(){beep(784,.18);},220);}else if(type==='day'){beep(330,.05,'square',.04);}else if(type==='escape'){beep(880,.08,'sawtooth',.08);}else if(type==='win'){[523,659,784,1047].forEach(function(f,i){setTimeout(function(){beep(f,.2,'sine',.1);},i*120);});}}catch(e){}}
+
+var canvas=document.getElementById('map-canvas'),ctx=canvas.getContext('2d');
+var miniC=document.getElementById('mini-canvas'),miniX=miniC.getContext('2d');
+function setSize(){canvas.width=MAP_W*TS;canvas.height=MAP_H*TS;}
+
+function save(){
+  try{
+    var encData=enclosures.map(function(e){return{key:e.key,bx:e.bx,by:e.by,sz:e.sz,energy:e.energy!==undefined?e.energy:100};});
+    var bldData=buildings.map(function(b){return{key:b.key,bx:b.bx,by:b.by,bw:b.bw,bh:b.bh,energy:b.energy!==undefined?b.energy:100};});
+    localStorage.setItem('jpb2',JSON.stringify({G:G,grid:grid,vh:visHistory,ih:incHistory,res:RESEARCH.map(function(r){return r.done;}),mis:MISSIONS.map(function(m){return m.done;}),enc:encData,bld:bldData,sbe:singleBldEnergy}));
+  }catch(e){}
+}
+function load(){
+  try{
+    var s=JSON.parse(localStorage.getItem('jpb2')||'null');
+    if(!s||!s.G||!s.grid)return false;
+    G=s.G;grid=s.grid;visHistory=s.vh||[];incHistory=s.ih||[];
+    if(s.res)for(var i=0;i<RESEARCH.length&&i<s.res.length;i++){RESEARCH[i].done=s.res[i];if(RESEARCH[i].done)RESEARCH[i].apply();}
+    if(s.mis)for(var j=0;j<MISSIONS.length&&j<s.mis.length;j++)MISSIONS[j].done=s.mis[j];
+    enclosures=[];
+    if(s.enc)for(var k=0;k<s.enc.length;k++){
+      var ed=s.enc[k];
+      var enc={key:ed.key,bx:ed.bx,by:ed.by,sz:ed.sz,energy:ed.energy!==undefined?ed.energy:100,dinos:[]};
+      spawnEnclosureDinos(enc);enclosures.push(enc);
+    }
+    buildings=[];
+    if(s.bld)for(var m=0;m<s.bld.length;m++){
+      var bd=s.bld[m];
+      buildings.push({key:bd.key,bx:bd.bx,by:bd.by,bw:bd.bw,bh:bd.bh,energy:bd.energy!==undefined?bd.energy:100});
+    }
+    singleBldEnergy=s.sbe||{};
+    return true;
+  }catch(e){return false;}
+}
+function clearSave(){try{localStorage.removeItem('jpb2');}catch(e){}}
+
+function resetBuilds(){
+  BD.fence.sec=3;BD.power.pw=15;BD.solar.pw=6;BD.clear.cost=300;
+  BD.raptor.sec=-2;BD.trex.sec=-3;BD.ptero.sec=-1;BD.spino.sec=-4;
+  BD.hotel.vis=40;BD.helipad.vis=20;
+  var dk=['raptor','trex','brachio','ptero','trice','spino','ankylo','diloph','mosaw','galli','para','stego'];
+  var dv=[25,60,20,35,28,75,30,32,65,35,28,40];
+  for(var i=0;i<dk.length;i++)BD[dk[i]].vis=dv[i];
+  BD.restaurant.vis=10;BD.restaurant.sat=20;
+  BD.hotel.vis=30;
+  for(var j=0;j<RESEARCH.length;j++)RESEARCH[j].done=false;
+  for(var k=0;k<MISSIONS.length;k++)MISSIONS[k].done=false;
+}
+
+function initGame(tryLoad){
+  resetBuilds();
+  var loaded=tryLoad&&load();
+  if(!loaded){
+    G={money:75000,day:1,vis:0,pow:0,powNeed:0,sec:0,sat:100,inc:0,costs:0,maint:0,bld:0,enc:0,rp:0,rpd:0,alive:true,victims:0};
+    visHistory=[];incHistory=[];grid=[];
+    // ── ISLAND SHAPE: elliptical Isla Nublar with ocean border ──
+    var cx=MAP_W/2, cy=MAP_H/2;
+    var rx=MAP_W*0.42, ry=MAP_H*0.44;
+    // Noise seed for organic coastline
+    function islandNoise(angle){
+      return 1.0
+        + 0.08*Math.sin(angle*3+0.5)
+        + 0.06*Math.cos(angle*5+1.2)
+        + 0.04*Math.sin(angle*7+2.1)
+        + 0.03*Math.cos(angle*11+0.8);
+    }
+    for(var j=0;j<MAP_H;j++){
+      grid[j]=[];
+      for(var i=0;i<MAP_W;i++){
+        var dx=(i-cx)/rx, dy=(j-cy)/ry;
+        var dist=Math.sqrt(dx*dx+dy*dy);
+        var angle=Math.atan2(dy,dx);
+        var noiseR=islandNoise(angle);
+        if(dist<0.72*noiseR){
+          grid[j][i]=T_JUNGLE;
+        } else {
+          grid[j][i]=T_OCEAN;
+        }
+      }
+    }
+    // Carve a flat starting area near the gate (west side of island)
+    var gateCol=5, gateRow=Math.round(MAP_H/2);
+    // Make sure gate area is on land — force a small cleared patch
+    for(var jj=gateRow-4;jj<=gateRow+4;jj++)
+      for(var ii=gateCol-1;ii<=gateCol+8;ii++)
+        if(ii>=0&&ii<MAP_W&&jj>=0&&jj<MAP_H&&grid[jj][ii]===T_OCEAN)grid[jj][ii]=T_JUNGLE;
+    // Starting cleared area
+    for(var jj=gateRow-3;jj<=gateRow+3;jj++)
+      for(var ii=gateCol+1;ii<=gateCol+9;ii++)
+        if(ii>=0&&ii<MAP_W&&jj>=0&&jj<MAP_H)grid[jj][ii]=T_CLEAR;
+    // Gate + road
+    grid[gateRow][gateCol]=T_GATE;
+    for(var rr=gateCol+1;rr<=gateCol+5;rr++) grid[gateRow][rr]=T_ROAD;
+  }
+  fugs=[];jeepTours=[];jeepTick=0;looseDinos=[];rangerVehicles=[];weatherParticles=[];
+  weather='sunny';weatherDaysLeft=3;stormDaysLeft=0;
+  G.weatherVisMult=1.0;G.weatherSatMod=0;
+  enclosures=[];buildings=[];singleBldEnergy={};
+  autoAdvance=false;autoTimer=0;autoSpeedIdx=0;autoSpeed=1;
+  camX=0;camY=0;selectedTool='demolish';setTool('demolish');
+  var vp=document.getElementById('viewport');
+  if(!fugLayer){
+    fugLayer=document.createElement('canvas');
+    fugLayer.style.cssText='position:absolute;top:0;left:0;pointer-events:none;z-index:5;';
+    fugCtx2=fugLayer.getContext('2d');vp.appendChild(fugLayer);
+  }
+  if(rafId)cancelAnimationFrame(rafId);
+  rafId=requestAnimationFrame(animLoop);
+  setSize();clampCam();recalc();draw();drawMini();updateUI();
+  buildResearchUI();buildMissionsUI();updateAutoBtn();
+  document.getElementById('log').innerHTML='';
+  document.getElementById('overlay').classList.remove('show');
+  if(loaded){log('✅ Partita caricata — Giorno '+G.day,'g');}
+  else{log('Isla Nublar è tua! Obiettivo: 1000 visitatori/giorno.','i');log('💡 Abbatti 🪓 la giungla, poi costruisci strade ed edifici.','w');}
+}
+
+function recalc(){
+  var pw=0,pn=0,sec=0,vis=0,sat=0,bld=0,enc=0,maint=0,rpd=0;
+  for(var j=0;j<MAP_H;j++){
+    for(var i=0;i<MAP_W;i++){
+      var t=grid[j][i];
+      if(t<T_FENCE||t===T_ENC_MARKER||t===T_BLD_MARKER)continue;
+      var bk=ID2K[t];if(!bk)continue;
+      var b=BD[bk];
+      // Skip single-tile entry if this building is multi-tile (counted via buildings[])
+      if(b.bw>1||b.bh>1)continue;
+      bld++;
+      // Energy efficiency: below 50% = proportional penalty on positive stats
+      var en=getSingleEnergy(i,j);
+      var eff=en>=50?1.0:en/50;
+      if(b.pw>0)pw+=b.pw;else pn+=(-b.pw);
+      sec+=b.sec>0?b.sec*eff:b.sec;
+      vis+=Math.floor(b.vis*eff);
+      sat+=Math.floor(b.sat*eff);
+      maint+=b.maint;rpd+=b.rp;
+    }
+  }
+  for(var ei=0;ei<enclosures.length;ei++){
+    var e=enclosures[ei],bd2=BD[e.key];if(!bd2)continue;
+    bld++;enc++;
+    if(bd2.pw>0)pw+=bd2.pw;else pn+=(-bd2.pw);
+    sec+=bd2.sec;vis+=bd2.vis;sat+=bd2.sat;maint+=bd2.maint;rpd+=bd2.rp;
+  }
+  // Count multi-tile buildings with energy efficiency
+  for(var bi=0;bi<buildings.length;bi++){
+    var bld2=buildings[bi],bd3=BD[bld2.key];if(!bd3)continue;
+    bld++;
+    var en2=getBldEnergy(bld2);
+    var eff2=en2>=50?1.0:en2/50;
+    if(bd3.pw>0)pw+=bd3.pw;else pn+=(-bd3.pw);
+    sec+=bd3.sec>0?bd3.sec*eff2:bd3.sec;
+    vis+=Math.floor(bd3.vis*eff2);
+    sat+=Math.floor(bd3.sat*eff2);
+    maint+=bd3.maint;rpd+=bd3.rp;
+  }
+  G.pow=pw;G.powNeed=pn;G.sec=sec;G.sat=Math.max(10,Math.min(100,50+sat+(G.weatherSatMod||0)));
+  G.maint=maint;G.bld=bld;G.enc=enc;G.rpd=rpd;
+  var ok=pw>=pn,sOk=sec>=0;
+  // Disease penalty
+  var disPenalty=1.0;
+  for(var di=0;di<enclosures.length;di++){
+    if(enclosures[di].disease){
+      var dd=DISEASES.filter(function(d){return d.id===enclosures[di].disease;})[0];
+      if(dd)disPenalty=Math.max(0.4,disPenalty*dd.visHit);
+    }
+  }
+  var wMult=G.weatherVisMult!==undefined?G.weatherVisMult:1.0;
+  G.vis=Math.floor(vis*(ok?1:0.4)*(sOk?1:0.6)*(G.sat/100)*wMult*disPenalty);
+  G.inc=G.vis*45+bld*6;G.costs=maint+300;
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++)drawCell(i,j);
+  drawEnclosures();drawMultiBuildings();drawRangerRanges();drawSelectedTileRange();drawJeepTours();drawRangerVehicles();drawLooseDinos();drawWeatherOverlay();drawHover();drawBuildFlash();
+}
+
+var GRASS_COLS=['#1a3a10','#1e4212','#223f10'];
+var JUNGLE_COLS=['#0e2a08','#0c2607','#102c09'];
+
+// Pre-computed per-tile pseudo-random seeds for stable decoration
+function tileRng(ci,cj,n){return((ci*2749+cj*1237+n*6271)^(ci*17+cj*31))&0xffff;}
+
+function drawCell(ci,cj){
+  var t=grid[cj][ci],px=ci*TS,py=cj*TS,h=(ci*13+cj*7)&0xff;
+  var cx2=px+TS/2,cy2=py+TS/2;
+  var wt=Date.now()/1000;
+
+  // ── OCEAN ──
+  if(t===T_OCEAN){
+    var waveOff=Math.sin(wt*0.8+ci*0.4+cj*0.3)*2;
+    ctx.fillStyle=['#0a2a4a','#0b2e52','#092848'][h%3];
+    ctx.fillRect(px,py,TS,TS);
+    ctx.strokeStyle='rgba(80,160,220,0.25)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(px,py+TS*0.3+waveOff);ctx.lineTo(px+TS,py+TS*0.3+waveOff);ctx.stroke();
+    ctx.strokeStyle='rgba(100,180,240,0.18)';
+    ctx.beginPath();ctx.moveTo(px,py+TS*0.6-waveOff);ctx.lineTo(px+TS,py+TS*0.6-waveOff);ctx.stroke();
+    var hasLand=false;
+    var nb=[[0,-1],[0,1],[-1,0],[1,0]];
+    for(var nb2=0;nb2<nb.length;nb2++){var ni=ci+nb[nb2][0],nj=cj+nb[nb2][1];if(ni>=0&&ni<MAP_W&&nj>=0&&nj<MAP_H&&grid[nj][ni]!==T_OCEAN){hasLand=true;break;}}
+    if(hasLand){
+      ctx.fillStyle='rgba(200,230,255,0.22)';
+      ctx.fillRect(px+2,py+TS*0.25+waveOff,TS-4,2);
+      ctx.fillRect(px+4,py+TS*0.55-waveOff,TS-8,2);
+    }
+    ctx.lineWidth=1;
+    return;
+  }
+  if(t===T_ENC_MARKER){ctx.fillStyle=['#2e5a1a','#305e1c','#2c581a'][h%3];ctx.fillRect(px,py,TS,TS);return;}
+  if(t===T_BLD_MARKER){ctx.fillStyle=['#2e5a1a','#305e1c','#2c581a'][h%3];ctx.fillRect(px,py,TS,TS);return;}
+
+  if(t===T_EMPTY||t===T_CLEAR){
+    // ── RICH GRASS / CLEARED TERRAIN ──
+    var gcols=t===T_CLEAR?
+      ['#2a5218','#2e5a1c','#265016','#325e1e']:
+      ['#1a3a10','#1e4212','#223f10','#1c3c12'];
+    ctx.fillStyle=gcols[h%4];ctx.fillRect(px,py,TS,TS);
+
+    // Subtle texture — small grass tufts using stable rng
+    var r0=tileRng(ci,cj,0),r1=tileRng(ci,cj,1),r2=tileRng(ci,cj,2);
+    // 3-4 grass blades per tile
+    var bladeCount=3+(h%2);
+    for(var bl=0;bl<bladeCount;bl++){
+      var bx2=px+3+(tileRng(ci,cj,bl+10)%((TS-6)));
+      var by2=py+4+(tileRng(ci,cj,bl+20)%((TS-8)));
+      var bh2=Math.floor(TS*0.12)+(tileRng(ci,cj,bl+30)%(Math.floor(TS*0.1)));
+      ctx.fillStyle=t===T_CLEAR?'rgba(60,140,30,0.45)':'rgba(40,100,20,0.4)';
+      ctx.fillRect(bx2,by2,1,bh2);
+      ctx.fillRect(bx2-1,by2+Math.floor(bh2*0.4),1,Math.floor(bh2*0.5));
+    }
+    // Small wildflowers on cleared terrain (1 per 4 tiles)
+    if(t===T_CLEAR&&(r0%4)===0){
+      var fx=px+4+(r1%(TS-8)),fy=py+4+(r2%(TS-8));
+      var flcols=['#ffdd44','#ff8844','#ff44aa','#44ddff'];
+      ctx.fillStyle=flcols[(r0/4)%4];
+      ctx.fillRect(fx,fy,2,2);ctx.fillRect(fx-1,fy+1,4,1);ctx.fillRect(fx+1,fy-1,1,4);
+    }
+    // Subtle grid lines between tiles
+    ctx.strokeStyle='rgba(0,0,0,0.06)';ctx.lineWidth=0.5;
+    ctx.strokeRect(px,py,TS,TS);ctx.lineWidth=1;
+
+  }else if(t===T_JUNGLE){
+    // ── RICH JUNGLE ──
+    var jbase=JUNGLE_COLS[h%3];
+    ctx.fillStyle=jbase;ctx.fillRect(px,py,TS,TS);
+
+    // Dark undergrowth shadow layer
+    ctx.fillStyle='rgba(0,0,0,0.22)';ctx.fillRect(px+1,py+1,TS-2,TS-2);
+
+    // Ground cover — random dark moss patches
+    var r3=tileRng(ci,cj,3),r4=tileRng(ci,cj,4);
+    ctx.fillStyle='rgba(10,40,5,0.5)';
+    ctx.fillRect(px+(r3%8)+2,py+(r4%8)+2,TS/2-2,TS/2-2);
+    ctx.fillRect(px+TS/2+(r4%6),py+(r3%6)+TS/3,TS/3,TS/3);
+
+    // Tree canopies — 2-3 overlapping circles per tile
+    var treeData=[
+      [px+5+((r3>>2)%6),   py+6+((r4>>2)%4),   6+(h%3)],
+      [px+TS-8-((r4>>3)%5),py+5+((r3>>3)%5),   5+(h%2)],
+      [px+TS/2-2,          py+TS-10+((r3>>4)%4),7+(h%3)],
+    ];
+    // Dark inner canopy
+    for(var tt=0;tt<treeData.length;tt++){
+      ctx.fillStyle='#0a2006';
+      ctx.beginPath();ctx.arc(treeData[tt][0],treeData[tt][1],treeData[tt][2]+1,0,Math.PI*2);ctx.fill();
+    }
+    // Main canopy — varied greens
+    var canopyCols=['#0d3a08','#103d0a','#0e380a','#143e0c'];
+    for(var tt2=0;tt2<treeData.length;tt2++){
+      ctx.fillStyle=canopyCols[(tt2+h)%4];
+      ctx.beginPath();ctx.arc(treeData[tt2][0],treeData[tt2][1],treeData[tt2][2],0,Math.PI*2);ctx.fill();
+    }
+    // Highlight dots on canopy tops
+    for(var tt3=0;tt3<treeData.length;tt3++){
+      ctx.fillStyle='rgba(60,160,20,0.25)';
+      ctx.beginPath();ctx.arc(treeData[tt3][0]-1,treeData[tt3][1]-1,Math.max(2,treeData[tt3][2]*0.4),0,Math.PI*2);ctx.fill();
+    }
+    // Occasional bright leaf highlight (1 per 3 tiles)
+    if(h%3===0){
+      ctx.fillStyle='rgba(80,200,30,0.18)';
+      ctx.beginPath();ctx.arc(px+3+((r3>>1)%(TS-6)),py+3+((r4>>1)%(TS-6)),3,0,Math.PI*2);ctx.fill();
+    }
+    // Thin vine lines
+    ctx.strokeStyle='rgba(20,60,10,0.4)';ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(px+treeData[0][0]%TS,py+2);
+    ctx.quadraticCurveTo(px+TS*0.6,py+TS*0.4,px+treeData[2][0]%TS,py+TS-3);
+    ctx.stroke();ctx.lineWidth=1;
+  }else if(t===T_ROAD){
+    // ── FIXED: using top-level rdN() instead of nested function isRoadN ──
+    var connN=rdN(ci,cj,0,-1),connS=rdN(ci,cj,0,1),connE=rdN(ci,cj,1,0),connW=rdN(ci,cj,-1,0);
+    var horiz=connE||connW,vert=connN||connS;
+    if(!horiz&&!vert)horiz=true;
+    ctx.fillStyle='#282828';ctx.fillRect(px,py,TS,TS);
+    ctx.fillStyle='#343434';ctx.fillRect(px+1,py+1,TS-2,TS-2);
+    ctx.fillStyle='#555550';
+    if(horiz&&!vert){ctx.fillRect(px,py,TS,3);ctx.fillRect(px,py+TS-3,TS,3);}
+    else if(vert&&!horiz){ctx.fillRect(px,py,3,TS);ctx.fillRect(px+TS-3,py,3,TS);}
+    else{ctx.fillRect(px,py,TS,2);ctx.fillRect(px,py+TS-2,TS,2);ctx.fillRect(px,py,2,TS);ctx.fillRect(px+TS-2,py,2,TS);}
+    var railW=4;
+    ctx.save();ctx.translate(px+TS/2,py+TS/2);
+    if(vert&&!horiz){
+      var nSl=Math.floor(TS/10);
+      ctx.fillStyle='#5a3a18';
+      for(var sl=0;sl<nSl;sl++){var sly=-TS/2+4+sl*(TS-8)/Math.max(1,nSl-1);ctx.fillRect(-railW-3,sly-1,railW*2+6,3);}
+      ctx.fillStyle='#aaaaaa';ctx.fillRect(-2,-TS/2,4,TS);
+      ctx.fillStyle='#dddddd';ctx.fillRect(-2,-TS/2,1,TS);
+    }else if(horiz&&!vert){
+      var nSl2=Math.floor(TS/10);
+      ctx.fillStyle='#5a3a18';
+      for(var sl2=0;sl2<nSl2;sl2++){var slx2=-TS/2+4+sl2*(TS-8)/Math.max(1,nSl2-1);ctx.fillRect(slx2-1,-railW-3,3,railW*2+6);}
+      ctx.fillStyle='#aaaaaa';ctx.fillRect(-TS/2,-2,TS,4);
+      ctx.fillStyle='#dddddd';ctx.fillRect(-TS/2,-2,TS,1);
+    }else{
+      ctx.fillStyle='#5a3a18';ctx.fillRect(-TS/2,-2,TS,4);ctx.fillRect(-2,-TS/2,4,TS);
+      ctx.fillStyle='#aaaaaa';ctx.fillRect(-TS/2,-2,TS,4);ctx.fillRect(-2,-TS/2,4,TS);
+      ctx.fillStyle='#dddddd';ctx.fillRect(-TS/2,-2,TS,1);ctx.fillRect(-2,-TS/2,1,TS);
+      ctx.fillStyle='#cccccc';ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+  }else if(t===T_FENCE){
+    ctx.fillStyle='#040e04';ctx.fillRect(px,py,TS,TS);
+    ctx.fillStyle='#081408';ctx.fillRect(px+3,py+3,TS-6,TS-6);
+    ctx.fillStyle='#2a4a2a';
+    ctx.fillRect(px+4,py+4,4,TS-8);ctx.fillRect(px+TS-8,py+4,4,TS-8);
+    ctx.shadowColor='#39ff14';ctx.shadowBlur=10;
+    ctx.strokeStyle='#39ff14';ctx.lineWidth=1.5;
+    for(var fw=0;fw<3;fw++){var fy2=py+8+fw*Math.floor((TS-16)/2);ctx.beginPath();ctx.moveTo(px+6,fy2);ctx.lineTo(px+TS-6,fy2);ctx.stroke();}
+    ctx.shadowBlur=0;ctx.lineWidth=1;
+    ctx.fillStyle='#39ff14';
+    [[4,4],[TS-8,4],[4,TS-8],[TS-8,TS-8]].forEach(function(p2){ctx.beginPath();ctx.arc(px+p2[0]+2,py+p2[1]+2,2,0,Math.PI*2);ctx.fill();});
+    var vp_2=0.4+0.6*Math.abs(Math.sin(Date.now()/400));
+    ctx.fillStyle='rgba(57,255,20,'+vp_2*0.12+')';ctx.fillRect(px,py,TS,TS);
+  }else if(t===T_POWER){
+    ctx.fillStyle='#06060e';ctx.fillRect(px,py,TS,TS);
+    ctx.fillStyle='#0e0e1e';ctx.fillRect(px+2,py+2,TS-4,TS-4);
+    ctx.fillStyle='#1a1a2a';
+    ctx.beginPath();ctx.moveTo(px+4,py+TS-4);ctx.lineTo(px+10,py+4);ctx.lineTo(px+14,py+4);ctx.lineTo(px+20,py+TS-4);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(px+TS-20,py+TS-4);ctx.lineTo(px+TS-14,py+4);ctx.lineTo(px+TS-10,py+4);ctx.lineTo(px+TS-4,py+TS-4);ctx.closePath();ctx.fill();
+    ctx.shadowColor='#aaaaff';ctx.shadowBlur=10;
+    ctx.fillStyle='#8888cc';ctx.beginPath();ctx.arc(px+10,py+5,3,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(px+TS-10,py+5,3,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+    var cx2=px+TS/2,cy2=py+TS/2;
+    ctx.shadowColor='#ffff44';ctx.shadowBlur=8;
+    ctx.fillStyle='#ffff44';
+    ctx.beginPath();ctx.moveTo(cx2+2,py+8);ctx.lineTo(cx2-4,cy2);ctx.lineTo(cx2+1,cy2);ctx.lineTo(cx2-2,py+TS-8);ctx.lineTo(cx2+4,cy2);ctx.lineTo(cx2-1,cy2);ctx.closePath();ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#2a2a3a';ctx.fillRect(px+2,py+TS-6,TS-4,4);
+  }else if(t===T_SOLAR){
+    ctx.fillStyle='#060e04';ctx.fillRect(px,py,TS,TS);
+    ctx.fillStyle='#081408';ctx.fillRect(px+2,py+2,TS-4,TS-4);
+    var pw3=Math.floor((TS-10)/3),ph3=Math.floor((TS-10)/3);
+    for(var si2=0;si2<3;si2++)for(var sj2=0;sj2<3;sj2++){
+      var spx2=px+4+si2*(pw3+1),spy2=py+4+sj2*(ph3+1);
+      ctx.fillStyle=(si2+sj2)%2===0?'#0e2e88':'#0a2266';ctx.fillRect(spx2,spy2,pw3,ph3);
+      ctx.fillStyle='rgba(150,200,255,0.18)';ctx.fillRect(spx2,spy2,pw3,2);ctx.fillRect(spx2,spy2,2,ph3);
+      ctx.strokeStyle='#1a3a99';ctx.lineWidth=0.5;ctx.strokeRect(spx2,spy2,pw3,ph3);ctx.lineWidth=1;
+    }
+    ctx.shadowColor='#88ccff';ctx.shadowBlur=8;
+    ctx.fillStyle='rgba(150,220,255,0.4)';ctx.beginPath();ctx.arc(px+TS-6,py+6,4,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+  }else if(t===T_WATCH){
+    var cx3=px+TS/2,cy3=py+TS/2;
+    ctx.fillStyle='#06080a';ctx.fillRect(px,py,TS,TS);
+    ctx.fillStyle='#2a3020';ctx.fillRect(px+5,py+TS-8,4,8);ctx.fillRect(px+TS-9,py+TS-8,4,8);
+    ctx.fillStyle='#3a4028';ctx.fillRect(px+3,cy3+2,TS-6,4);
+    ctx.fillStyle='#1e2818';ctx.fillRect(px+6,py+6,TS-12,cy3-4);
+    ctx.fillStyle='#2a3820';ctx.fillRect(px+6,py+6,TS-12,4);
+    ctx.fillStyle='rgba(255,220,80,0.7)';ctx.fillRect(px+8,py+10,5,5);ctx.fillRect(px+TS-13,py+10,5,5);
+    ctx.shadowColor='#ffee44';ctx.shadowBlur=6;
+    ctx.fillStyle='rgba(255,230,80,0.5)';ctx.fillRect(px+8,py+10,5,5);ctx.fillRect(px+TS-13,py+10,5,5);
+    ctx.shadowBlur=0;
+    var sa3=Date.now()/1200;
+    ctx.save();ctx.translate(cx3,py+5);ctx.rotate(Math.sin(sa3)*0.6);
+    ctx.fillStyle='rgba(255,240,120,0.12)';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-10,30);ctx.lineTo(10,30);ctx.closePath();ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle='#556644';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(cx3,py+6);ctx.lineTo(cx3,py+2);ctx.stroke();ctx.lineWidth=1;
+    ctx.fillStyle='#ff4444';ctx.shadowColor='#ff4444';ctx.shadowBlur=4;ctx.beginPath();ctx.arc(cx3,py+2,1.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+  }else if(t===T_MOSAW){
+    ctx.fillStyle='#0a2840';ctx.fillRect(px,py,TS,TS);ctx.fillStyle='#0e3a5a';ctx.fillRect(px+3,py+3,TS-6,TS-6);
+    ctx.fillStyle='rgba(0,160,220,0.3)';ctx.fillRect(px+3,py+TS/2,TS-6,6);
+    ctx.strokeStyle='#2266aa';ctx.lineWidth=2;ctx.strokeRect(px+3,py+3,TS-6,TS-6);ctx.lineWidth=1;
+    ctx.font=Math.floor(TS*.45)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('🌊',px+TS/2,py+TS/2);ctx.textAlign='left';ctx.textBaseline='top';
+    if(G.pow<G.powNeed){ctx.fillStyle='rgba(255,80,0,0.22)';ctx.fillRect(px,py,TS,TS);}
+  }else if(t===T_GATE){
+    ctx.fillStyle='#282828';ctx.fillRect(px,py,TS,TS);ctx.fillStyle='#343434';ctx.fillRect(px+1,py+1,TS-2,TS-2);
+    ctx.fillStyle='#555550';ctx.fillRect(px,py,TS,3);ctx.fillRect(px,py+TS-3,TS,3);
+    ctx.fillStyle='#5a3a18';
+    var nsl=Math.floor(TS/10);
+    for(var gs=0;gs<nsl;gs++){var slx=px+4+gs*(TS-8)/Math.max(1,nsl-1);ctx.fillRect(slx-1,py+4,3,TS-8);}
+    ctx.fillStyle='#aaaaaa';ctx.fillRect(px,py+TS/2-2,TS,4);ctx.fillStyle='#dddddd';ctx.fillRect(px,py+TS/2-2,TS,1);
+    ctx.fillStyle='#8B7040';ctx.fillRect(px+1,py+2,8,TS/2-2);ctx.fillRect(px+1,py+TS/2+2,8,TS/2-4);
+    ctx.fillRect(px+1,py+1,7,TS-2);ctx.fillStyle='#6B5030';ctx.fillRect(px+3,py+2,3,TS-4);
+    ctx.fillStyle='#5a4020';ctx.fillRect(px+8,py+2,4,TS/2-8);ctx.fillRect(px+8,py+TS/2+5,4,TS/2-8);
+    ctx.shadowColor='#ffaa00';ctx.shadowBlur=6;ctx.fillStyle='#ffcc44';
+    ctx.fillRect(px+4,py+4,3,4);ctx.fillRect(px+4,py+TS-8,3,4);ctx.shadowBlur=0;
+    ctx.save();ctx.translate(px+6,py+TS/2);ctx.rotate(-Math.PI/2);
+    ctx.fillStyle='#ffcc44';ctx.font='bold '+Math.max(6,Math.floor(TS*.18))+'px serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('JP',0,0);ctx.restore();
+    ctx.textAlign='left';ctx.textBaseline='top';
+  }else{
+    var bk2=ID2K[t];
+    if(bk2){
+      var isEnc=t>=DINO_MIN&&t<=DINO_MAX;
+      ctx.save();drawBuildingTile(ctx,t,bk2,px,py,TS);
+      if(isEnc){ctx.strokeStyle=G.sec<0?'#ff3333':G.pow<G.powNeed?'#ff8800':'#ffb300';ctx.lineWidth=2;ctx.strokeRect(px+1,py+1,TS-2,TS-2);ctx.lineWidth=1;}
+      if(isEnc&&G.pow<G.powNeed){ctx.fillStyle='rgba(255,80,0,0.22)';ctx.fillRect(px,py,TS,TS);}
+      // Energy bar for regular (non-enclosure) buildings
+      if(!isEnc&&!WEAR_EXEMPT[t]){
+        var sen=getSingleEnergy(ci,cj);
+        var sbarW=TS-6,sbarH=3,sbarX=px+3,sbarY=py+TS-5;
+        ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(sbarX-1,sbarY-1,sbarW+2,sbarH+2);
+        var sbarCol=sen>60?'#39ff14':sen>25?'#ffb300':'#ff3333';
+        ctx.fillStyle=sbarCol;ctx.fillRect(sbarX,sbarY,Math.max(0,sbarW*(sen/100)),sbarH);
+        if(sen<=25){ctx.shadowColor=sbarCol;ctx.shadowBlur=4;ctx.fillRect(sbarX,sbarY,Math.max(0,sbarW*(sen/100)),sbarH);ctx.shadowBlur=0;}
+        // Dim the tile if very degraded
+        if(sen<50){ctx.fillStyle='rgba(0,0,0,'+(0.3*(1-sen/50))+')';ctx.fillRect(px,py,TS,TS);}
+      }
+      ctx.restore();
+    }
+  }
+  ctx.strokeStyle='rgba(0,0,0,0.14)';ctx.lineWidth=0.5;ctx.strokeRect(px,py,TS,TS);ctx.lineWidth=1;
+}
+
+function drawWorkshopRange(cx, cy){
+  // Draw range circle + highlight enclosures in range
+  var range = BD.workshop.repairRange || 8;
+  var px = cx*TS + TS/2, py = cy*TS + TS/2;
+  var radius = range * TS;
+
+  // Shaded circle
+  ctx.save();
+  ctx.beginPath();ctx.arc(px, py, radius, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,180,0,0.07)';ctx.fill();
+  // Dashed border
+  ctx.strokeStyle = '#ffb300';ctx.lineWidth = 1.5;
+  ctx.setLineDash([4,4]);ctx.stroke();
+  ctx.setLineDash([]);ctx.lineWidth = 1;
+  // Center dot
+  ctx.fillStyle = '#ffb300';ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);ctx.fill();
+  // Label
+  ctx.font = 'bold 9px monospace';ctx.fillStyle = '#ffb300';
+  ctx.textAlign = 'center';ctx.textBaseline = 'top';
+  ctx.fillText('🔧 raggio '+range, px, cy*TS+2);
+  ctx.textAlign = 'left';ctx.textBaseline = 'top';
+  ctx.restore();
+
+  // Highlight enclosures in range
+  for(var ei=0;ei<enclosures.length;ei++){
+    var enc = enclosures[ei];
+    var ecx = enc.bx + enc.sz/2, ecy = enc.by + enc.sz/2;
+    var dx = ecx - cx, dy = ecy - cy;
+    var inRange = Math.sqrt(dx*dx+dy*dy) <= range;
+    var epx = enc.bx*TS, epy = enc.by*TS, epw = enc.sz*TS, eph = enc.sz*TS;
+    if(inRange){
+      ctx.strokeStyle = '#ffb300';ctx.lineWidth = 2;
+      ctx.shadowColor = '#ffb300';ctx.shadowBlur = 6;
+      ctx.strokeRect(epx+1,epy+1,epw-2,eph-2);
+      ctx.shadowBlur = 0;ctx.lineWidth = 1;
+    } else {
+      ctx.strokeStyle = 'rgba(100,100,100,0.4)';ctx.lineWidth = 1.5;
+      ctx.strokeRect(epx+1,epy+1,epw-2,eph-2);ctx.lineWidth = 1;
+    }
+  }
+}
+
+function drawHover(){
+  if(hoverX<0||hoverY<0||hoverX>=MAP_W||hoverY>=MAP_H)return;
+  var b=BD[selectedTool];
+
+  // Workshop placement — show range preview
+  if(selectedTool==='workshop'||selectedTool==='infirmary'){
+    var ok2=canPlace(hoverX,hoverY,selectedTool);
+    ctx.fillStyle=ok2?'rgba(57,255,20,0.13)':'rgba(255,50,50,0.13)';ctx.fillRect(hoverX*TS,hoverY*TS,TS,TS);
+    ctx.strokeStyle=ok2?'#39ff14':'#ff3333';ctx.lineWidth=2;ctx.strokeRect(hoverX*TS+1,hoverY*TS+1,TS-2,TS-2);ctx.lineWidth=1;
+    var placeRI=RANGE_INFO[BD[selectedTool].id];
+    if(ok2&&placeRI)drawBuildingRange({cx:hoverX+0.5,cy:hoverY+0.5,range:placeRI.range,color:placeRI.color,label:placeRI.label});
+    return;
+  }
+
+  if(b&&b.sz>0){
+    var by=hoverY-(b.sz-1),pw2=b.sz*TS,ph2=b.sz*TS,px2=hoverX*TS,py2=by*TS;
+    var ok=canPlaceEnclosure(hoverX,by,b.sz);
+    ctx.fillStyle=ok?'rgba(57,255,20,0.13)':'rgba(255,50,50,0.13)';ctx.fillRect(px2,py2,pw2,ph2);
+    ctx.strokeStyle=ok?'#39ff14':'#ff3333';ctx.lineWidth=2;ctx.strokeRect(px2+1,py2+1,pw2-2,ph2-2);ctx.lineWidth=1;
+    ctx.font='bold 10px monospace';ctx.fillStyle=ok?'#39ff14':'#ff3333';
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(b.sz+'x'+b.sz+' '+b.lbl,px2+pw2/2,py2+ph2/2);
+    ctx.textAlign='left';ctx.textBaseline='top';
+  } else if(b&&(b.bw>1||b.bh>1)){
+    var bby=hoverY-(b.bh-1),bbx=hoverX;
+    var ok3=canPlaceBuilding(bbx,bby,b.bw,b.bh);
+    var pw3=b.bw*TS,ph3=b.bh*TS,px3=bbx*TS,py3=bby*TS;
+    ctx.fillStyle=ok3?'rgba(57,255,20,0.13)':'rgba(255,50,50,0.13)';ctx.fillRect(px3,py3,pw3,ph3);
+    ctx.strokeStyle=ok3?'#39ff14':'#ff3333';ctx.lineWidth=2;ctx.strokeRect(px3+1,py3+1,pw3-2,ph3-2);ctx.lineWidth=1;
+    ctx.font='bold 10px monospace';ctx.fillStyle=ok3?'#39ff14':'#ff3333';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(b.bw+'x'+b.bh+' '+b.lbl,px3+pw3/2,py3+ph3/2);
+    ctx.textAlign='left';ctx.textBaseline='top';
+    // Show range preview for ranger/lab/infirmary placement
+    var pri=RANGE_INFO_KEY[selectedTool]||(selectedTool==='ranger'?{range:BD.ranger.catchRange||10,color:'#88cc44',label:'🪖 Ranger'}:null);
+    if(pri&&ok3){var fcx=bbx+b.bw/2,fcy=bby+b.bh/2;drawBuildingRange({cx:fcx,cy:fcy,range:pri.range,color:pri.color,label:pri.label});}
+  } else {
+    var ok4=canPlace(hoverX,hoverY,selectedTool);
+    ctx.fillStyle=ok4?'rgba(57,255,20,0.13)':'rgba(255,50,50,0.13)';ctx.fillRect(hoverX*TS,hoverY*TS,TS,TS);
+    ctx.strokeStyle=ok4?'#39ff14':'#ff3333';ctx.lineWidth=2;ctx.strokeRect(hoverX*TS+1,hoverY*TS+1,TS-2,TS-2);ctx.lineWidth=1;
+    // Show range if hovering over any range building
+    var hri=getBuildingRangeAt(hoverX,hoverY);
+    if(hri)drawBuildingRange(hri);
+  }
+}
+
+// ── BUILDING RANGE OVERLAY ──
+// Config: tile/key → {range, color, label}
+var RANGE_INFO={};
+RANGE_INFO[T_WORKSHOP]  ={range:8,  color:'#ffb300', label:'🔧 Officina'};
+RANGE_INFO[T_INFIRMARY] ={range:14, color:'#ff4466', label:'🏥 Infermeria'};
+RANGE_INFO[T_RANGER]    ={range:10, color:'#88cc44', label:'🪖 Ranger'};
+// lab uses key since it's multi-tile
+var RANGE_INFO_KEY={lab:{range:12,color:'#00cfff',label:'🧬 Laboratorio'}};
+
+function getBuildingRangeAt(x,y){
+  // Check single-tile
+  if(x>=0&&x<MAP_W&&y>=0&&y<MAP_H){
+    var t=grid[y][x];
+    if(RANGE_INFO[t])return{cx:x+0.5,cy:y+0.5,range:RANGE_INFO[t].range,color:RANGE_INFO[t].color,label:RANGE_INFO[t].label};
+  }
+  // Check multi-tile buildings
+  for(var bi=0;bi<buildings.length;bi++){
+    var bld=buildings[bi];
+    if(x>=bld.bx&&x<bld.bx+bld.bw&&y>=bld.by&&y<bld.by+bld.bh){
+      var ri=RANGE_INFO_KEY[bld.key];
+      if(ri)return{cx:bld.bx+bld.bw/2,cy:bld.by+bld.bh/2,range:ri.range,color:ri.color,label:ri.label};
+      // ranger multi-tile
+      if(bld.key==='ranger'){var rr=RANGE_INFO[T_RANGER];return{cx:bld.bx+bld.bw/2,cy:bld.by+bld.bh/2,range:rr.range,color:rr.color,label:rr.label};}
+    }
+  }
+  return null;
+}
+
+function drawBuildingRange(info){
+  var px=info.cx*TS, py=info.cy*TS;
+  var radius=info.range*TS;
+  ctx.save();
+  ctx.beginPath();ctx.arc(px,py,radius,0,Math.PI*2);
+  // Tinted fill using globalAlpha
+  ctx.globalAlpha=0.07;ctx.fillStyle=info.color;ctx.fill();ctx.globalAlpha=1;
+  // Dashed border
+  ctx.strokeStyle=info.color;ctx.lineWidth=1.5;
+  if(ctx.setLineDash)ctx.setLineDash([6,4]);
+  ctx.stroke();
+  if(ctx.setLineDash)ctx.setLineDash([]);ctx.lineWidth=1;
+  // Center crosshair
+  ctx.globalAlpha=0.5;ctx.strokeStyle=info.color;ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(px-6,py);ctx.lineTo(px+6,py);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(px,py-6);ctx.lineTo(px,py+6);ctx.stroke();
+  ctx.globalAlpha=1;
+  // Label
+  ctx.font='bold 9px monospace';ctx.fillStyle=info.color;
+  ctx.textAlign='center';ctx.textBaseline='bottom';
+  ctx.fillText(info.label+' — raggio '+info.range,px,py-radius-4);
+  ctx.textAlign='left';ctx.textBaseline='top';
+  ctx.restore();
+}
+
+function drawSelectedTileRange(){
+  if(selectedTileX<0||selectedTileY<0)return;
+  var info=getBuildingRangeAt(selectedTileX,selectedTileY);
+  if(info)drawBuildingRange(info);
+}
+function drawBuildFlash(){
+  if(!buildFlash)return;
+  var elapsed=(performance.now()-buildFlash.start)/1000,dur=0.45;
+  if(elapsed>dur){buildFlash=null;return;}
+  var alpha=1-(elapsed/dur),px=buildFlash.x*TS,py=buildFlash.y*TS,pw=buildFlash.sz*TS,ph=buildFlash.sz*TS;
+  ctx.save();ctx.globalAlpha=alpha*0.7;ctx.fillStyle='#39ff14';ctx.fillRect(px,py,pw,ph);
+  ctx.globalAlpha=alpha;ctx.shadowColor='#39ff14';ctx.shadowBlur=20;ctx.strokeStyle='#ffffff';ctx.lineWidth=3;
+  ctx.strokeRect(px+1,py+1,pw-2,ph-2);ctx.restore();
+}
+
+function drawMini(){
+  var mw=miniC.width,mh=miniC.height,tw=mw/MAP_W,th=mh/MAP_H;
+  miniX.clearRect(0,0,mw,mh);
+  for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++){
+    var t=grid[j][i];
+    miniX.fillStyle=t===T_OCEAN?'#0a2a4a':t===T_JUNGLE?'#0d280a':t===T_CLEAR||t===T_EMPTY?'#2a5a1a':t===T_ROAD||t===T_GATE?'#7a6a44':t===T_ENC_MARKER||t>=DINO_MIN&&t<=DINO_MAX?'#8a4a10':t===T_BLD_MARKER?'#3a5a7a':t===T_VISITOR?'#c8a040':t===T_WORKSHOP?'#8a6020':t===T_JEEP?'#336600':t===T_RANGER?'#4a7a20':t===T_FOUNTAIN||t===T_STATUE||t===T_BENCH?'#3a6a3a':t>=T_GATE?'#3a5a7a':'#1e4212';
+    miniX.fillRect(i*tw,j*th,tw+0.5,th+0.5);
+  }
+  for(var ei=0;ei<enclosures.length;ei++){
+    var e=enclosures[ei];
+    miniX.fillStyle='#c06020';miniX.fillRect(e.bx*tw,e.by*th,e.sz*tw,e.sz*th);
+    miniX.strokeStyle='#ffb300';miniX.lineWidth=0.5;miniX.strokeRect(e.bx*tw,e.by*th,e.sz*tw,e.sz*th);
+  }
+  for(var bi=0;bi<buildings.length;bi++){
+    var bm=buildings[bi];
+    miniX.fillStyle='#3a6a9a';miniX.fillRect(bm.bx*tw,bm.by*th,bm.bw*tw,bm.bh*th);
+    miniX.strokeStyle='#88ccff';miniX.lineWidth=0.5;miniX.strokeRect(bm.bx*tw,bm.by*th,bm.bw*tw,bm.bh*th);
+  }
+  var vp=document.getElementById('viewport');
+  miniX.strokeStyle='#39ff14';miniX.lineWidth=1;
+  miniX.strokeRect(Math.max(0,-camX/TS*tw),Math.max(0,-camY/TS*th),vp.clientWidth/TS*tw,vp.clientHeight/TS*th);
+}
+
+function spawnFug(){
+  var vp=document.getElementById('viewport');if(!vp)return;
+  var W=vp.clientWidth,H=vp.clientHeight,spd=0.5+Math.random()*0.5,edge=Math.floor(Math.random()*4),x,y,vx,vy;
+  if(edge===0){x=Math.random()*W;y=-30;vx=(Math.random()-.5)*spd;vy=spd;}
+  else if(edge===1){x=W+30;y=Math.random()*H;vx=-spd;vy=(Math.random()-.5)*spd;}
+  else if(edge===2){x=Math.random()*W;y=H+30;vx=(Math.random()-.5)*spd;vy=-spd;}
+  else{x=-30;y=Math.random()*H;vx=spd;vy=(Math.random()-.5)*spd;}
+  fugs.push({x:x,y:y,vx:vx,vy:vy,icon:FICONS[Math.floor(Math.random()*FICONS.length)],sz:28+Math.floor(Math.random()*16),age:0});
+  snd('escape');
+}
+
+function updateFugs(){
+  var vp=document.getElementById('viewport');if(!vp||!fugLayer)return;
+  var W=vp.clientWidth,H=vp.clientHeight;
+  fugLayer.width=W;fugLayer.height=H;fugCtx2.clearRect(0,0,W,H);
+  for(var i=fugs.length-1;i>=0;i--){
+    var f=fugs[i];f.x+=f.vx*2;f.y+=f.vy*2;f.age++;
+    if(f.x<-60||f.x>W+60||f.y<-60||f.y>H+60||f.age>500){fugs.splice(i,1);continue;}
+    fugCtx2.font=f.sz+'px serif';fugCtx2.textAlign='center';fugCtx2.textBaseline='middle';
+    fugCtx2.shadowColor='#ff3333';fugCtx2.shadowBlur=10;fugCtx2.fillText(f.icon,f.x,f.y);
+    fugCtx2.shadowBlur=0;fugCtx2.strokeStyle='rgba(255,50,50,0.25)';fugCtx2.lineWidth=2;
+    fugCtx2.beginPath();fugCtx2.arc(f.x,f.y,f.sz,0,Math.PI*2);fugCtx2.stroke();
+  }
+}
+
+function animLoop(ts){
+  var dt=lastFrameTime?Math.min((ts-lastFrameTime)/1000,0.1):0;lastFrameTime=ts;
+  if(autoAdvance&&G.alive&&!paused){autoTimer+=dt;var interval=1/autoSpeed;if(autoTimer>=interval){autoTimer-=interval;nextDay();}}
+  updateFugs();updateJeepTours();updateLooseDinos();updateRangerVehicles();
+  if(!IS_IOS&&Math.random()<0.3)spawnWeatherParticles();
+  if(!IS_IOS)updateWeatherParticles();
+  draw();rafId=requestAnimationFrame(animLoop);
+}
+
+function findRoadCells(){var roads=[];for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++)if(grid[j][i]===T_ROAD||grid[j][i]===T_GATE)roads.push({x:i,y:j});return roads;}
+
+function spawnCar(){
+  var roads=findRoadCells();if(roads.length<2)return;
+  var start=roads[Math.floor(Math.random()*roads.length)];
+  var dirs=[[1,0],[-1,0],[0,1],[0,-1]],dir=dirs[Math.floor(Math.random()*dirs.length)];
+  cars.push({x:start.x*TS+TS/2,y:start.y*TS+TS/2,dx:dir[0],dy:dir[1],speed:0.6+Math.random()*0.4,color:['#336633','#886622','#223355','#553322'][Math.floor(Math.random()*4)],age:0,stuck:0});
+}
+
+function updateCars(){
+  carTick++;
+  // Max cars scales with visitors: 0→1 car, 100→2, 300→4, 600→6, 1000→10
+  var maxCars = Math.max(1, Math.min(10, 1 + Math.floor(G.vis / 100)));
+  // Spawn interval shrinks as visitors grow (more frequent at high vis)
+  var spawnInterval = Math.max(60, 250 - Math.floor(G.vis / 6));
+  if(carTick % spawnInterval === 0 && cars.length < maxCars) spawnCar();
+  for(var i=cars.length-1;i>=0;i--){
+    var c=cars[i];c.age++;
+    var nx=c.x+c.dx*c.speed,ny=c.y+c.dy*c.speed;
+    var ci=Math.floor(c.x/TS),cj=Math.floor(c.y/TS),cellCX=ci*TS+TS/2,cellCY=cj*TS+TS/2;
+    if(c.dx!==0){c.y+=(cellCY-c.y)*0.2;ny=c.y;}
+    if(c.dy!==0){c.x+=(cellCX-c.x)*0.2;nx=c.x;}
+    var nci=Math.floor(nx/TS),ncj=Math.floor(ny/TS);
+    var onRoad=nci>=0&&nci<MAP_W&&ncj>=0&&ncj<MAP_H&&(grid[ncj][nci]===T_ROAD||grid[ncj][nci]===T_GATE);
+    if(onRoad){
+      c.x=nx;c.y=ny;c.stuck=0;
+      var distX=Math.abs(c.x-cellCX),distY=Math.abs(c.y-cellCY);
+      if(distX<c.speed+1&&distY<c.speed+1){
+        var ahead=[[1,0],[-1,0],[0,1],[0,-1]].filter(function(d){
+          if(d[0]===-c.dx&&d[1]===-c.dy)return false;
+          var tx=ci+d[0],ty=cj+d[1];
+          return tx>=0&&tx<MAP_W&&ty>=0&&ty<MAP_H&&(grid[ty][tx]===T_ROAD||grid[ty][tx]===T_GATE);
+        });
+        var straight=ahead.filter(function(d){return d[0]===c.dx&&d[1]===c.dy;});
+        if(straight.length>0&&Math.random()<0.75){c.dx=straight[0][0];c.dy=straight[0][1];}
+        else if(ahead.length>0){var pick=ahead[Math.floor(Math.random()*ahead.length)];c.dx=pick[0];c.dy=pick[1];}
+        else{c.dx=-c.dx;c.dy=-c.dy;}
+      }
+    }else{
+      c.stuck++;if(c.stuck>40){cars.splice(i,1);continue;}
+      var any=[[1,0],[-1,0],[0,1],[0,-1]].filter(function(d){var tx=ci+d[0],ty=cj+d[1];return tx>=0&&tx<MAP_W&&ty>=0&&ty<MAP_H&&(grid[ty][tx]===T_ROAD||grid[ty][tx]===T_GATE);});
+      if(any.length>0){var a2=any[Math.floor(Math.random()*any.length)];c.dx=a2[0];c.dy=a2[1];}
+    }
+    if(c.age>3000)cars.splice(i,1);
+  }
+}
+
+function drawCars(){
+  for(var i=0;i<cars.length;i++){
+    var c=cars[i],cw=Math.max(8,Math.floor(TS*.38)),ch=Math.max(5,Math.floor(TS*.22));
+    ctx.save();ctx.translate(c.x,c.y);
+    var angle=c.dx===1?0:c.dx===-1?Math.PI:c.dy===1?Math.PI/2:-Math.PI/2;
+    ctx.rotate(angle);
+    ctx.fillStyle=c.color;ctx.fillRect(-cw/2,-ch/2,cw,ch);
+    ctx.fillStyle=c.color==='#336633'?'#224422':'#333';ctx.fillRect(-cw/3,-ch/2-3,cw*0.6,4);
+    ctx.fillStyle='rgba(150,220,255,0.7)';ctx.fillRect(-cw/3+1,-ch/2-2,cw*0.55,2);
+    ctx.fillStyle='#ffffaa';ctx.fillRect(cw/2-2,-ch/2+1,2,2);ctx.fillRect(cw/2-2,ch/2-3,2,2);
+    ctx.fillStyle='#111';ctx.fillRect(-cw/2+1,-ch/2-1,3,2);ctx.fillRect(cw/2-4,-ch/2-1,3,2);
+    ctx.fillRect(-cw/2+1,ch/2-1,3,2);ctx.fillRect(cw/2-4,ch/2-1,3,2);
+    ctx.restore();
+  }
+}
+
+function clampCam(){
+  var vp=document.getElementById('viewport'),vw=vp.clientWidth,vh=vp.clientHeight;
+  var minX=Math.min(0,vw-MAP_W*TS),minY=Math.min(0,vh-MAP_H*TS);
+  camX=Math.max(minX,Math.min(0,camX));camY=Math.max(minY,Math.min(0,camY));
+  canvas.style.transform='translate('+camX+'px,'+camY+'px)';
+}
+function sc2cell(cx,cy){var vp=document.getElementById('viewport'),r=vp.getBoundingClientRect();return{x:Math.floor((cx-r.left-camX)/TS),y:Math.floor((cy-r.top-camY)/TS)};}
+
+var vp3=document.getElementById('viewport');
+vp3.addEventListener('mousedown',function(e){dragging=true;didDrag=false;dragSX=e.clientX;dragSY=e.clientY;camSX=camX;camSY=camY;vp3.classList.add('grabbing');});
+vp3.addEventListener('mousemove',function(e){
+  if(dragging){var dx=e.clientX-dragSX,dy=e.clientY-dragSY;if(Math.abs(dx)>4||Math.abs(dy)>4)didDrag=true;camX=camSX+dx;camY=camSY+dy;clampCam();drawMini();}
+  var c=sc2cell(e.clientX,e.clientY);if(c.x!==hoverX||c.y!==hoverY){hoverX=c.x;hoverY=c.y;draw();showTooltip(e.clientX,e.clientY,c.x,c.y);}
+});
+vp3.addEventListener('mouseup',function(e){
+  vp3.classList.remove('grabbing');
+  if(!didDrag){
+    var c=sc2cell(e.clientX,e.clientY);
+    if(e.button===2){demolish(c.x,c.y);}
+    else{
+      // Check if clicking an existing range building — toggle range display
+      var ri=getBuildingRangeAt(c.x,c.y);
+      if(ri&&selectedTool==='demolish'){
+        if(selectedTileX===c.x&&selectedTileY===c.y){selectedTileX=-1;selectedTileY=-1;}
+        else{selectedTileX=c.x;selectedTileY=c.y;}
+        draw();
+      } else {
+        selectedTileX=-1;selectedTileY=-1;
+        place(c.x,c.y);
+      }
+    }
+  }
+  dragging=false;
+});
+vp3.addEventListener('mouseleave',function(){dragging=false;hoverX=-1;hoverY=-1;draw();document.getElementById('tooltip').style.display='none';});
+vp3.addEventListener('contextmenu',function(e){e.preventDefault();});
+vp3.addEventListener('wheel',function(e){
+  e.preventDefault();var r=vp3.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,old=TS;
+  TS=e.deltaY<0?Math.min(56,TS+4):Math.max(20,TS-4);if(TS===old)return;
+  camX=mx-(mx-camX)*(TS/old);camY=my-(my-camY)*(TS/old);setSize();clampCam();draw();drawMini();
+},{passive:false});
+
+var tSX,tSY,tCX,tCY,tMoved;
+vp3.addEventListener('touchstart',function(e){if(e.touches.length!==1)return;tSX=e.touches[0].clientX;tSY=e.touches[0].clientY;tCX=camX;tCY=camY;tMoved=false;},{passive:true});
+vp3.addEventListener('touchmove',function(e){if(e.touches.length!==1)return;var dx=e.touches[0].clientX-tSX,dy=e.touches[0].clientY-tSY;if(Math.abs(dx)>5||Math.abs(dy)>5)tMoved=true;camX=tCX+dx;camY=tCY+dy;clampCam();drawMini();},{passive:true});
+vp3.addEventListener('touchend',function(e){
+  if(!tMoved){
+    var t=e.changedTouches[0],c=sc2cell(t.clientX,t.clientY);
+    var ri=getBuildingRangeAt(c.x,c.y);
+    if(ri&&selectedTool==='demolish'){
+      if(selectedTileX===c.x&&selectedTileY===c.y){selectedTileX=-1;selectedTileY=-1;}
+      else{selectedTileX=c.x;selectedTileY=c.y;}
+      draw();
+    } else {
+      selectedTileX=-1;selectedTileY=-1;
+      place(c.x,c.y);
+    }
+  }
+},{passive:true});
+
+function hasRoad(x,y){var dirs=[[0,-1],[0,1],[-1,0],[1,0]];for(var d=0;d<dirs.length;d++){var nx=x+dirs[d][0],ny=y+dirs[d][1];if(nx>=0&&nx<MAP_W&&ny>=0&&ny<MAP_H&&(grid[ny][nx]===T_ROAD||grid[ny][nx]===T_GATE))return true;}return false;}
+function isDino(tool){var b=BD[tool];return b&&b.sz>0;}
+function canPlaceEnclosure(x,y,sz){for(var jj=y;jj<y+sz;jj++)for(var ii=x;ii<x+sz;ii++){if(ii<0||ii>=MAP_W||jj<0||jj>=MAP_H)return false;var t=grid[jj][ii];if(t!==T_CLEAR&&t!==T_EMPTY)return false;}return true;}
+function hasRoadNear(x,y,sz){for(var jj=y;jj<y+sz;jj++)for(var ii=x;ii<x+sz;ii++)if(hasRoad(ii,jj))return true;return false;}
+function canPlaceBuilding(x,y,bw,bh){
+  for(var jj=y;jj<y+bh;jj++)for(var ii=x;ii<x+bw;ii++){
+    if(ii<0||ii>=MAP_W||jj<0||jj>=MAP_H)return false;
+    var t=grid[jj][ii];if(t!==T_CLEAR&&t!==T_EMPTY)return false;
+  }
+  return true;
+}
+function canPlace(x,y,tool){
+  if(x<0||x>=MAP_W||y<0||y>=MAP_H)return false;
+  var cur=grid[y][x];
+  if(cur===T_OCEAN)return false; // never build on ocean
+  if(tool==='demolish')return cur!==T_OCEAN&&cur!==T_JUNGLE&&(cur>T_JUNGLE||!!enclosureAt(x,y)||!!buildingAt(x,y));
+  var b=BD[tool];if(!b)return false;
+  if(tool==='clear')return cur===T_JUNGLE;
+  if(tool==='road')return cur===T_CLEAR||cur===T_EMPTY;
+  if(isDino(tool)){var by2=y-(b.sz-1);if(!canPlaceEnclosure(x,by2,b.sz))return false;if(b.road&&!hasRoadNear(x,by2,b.sz))return false;return true;}
+  if(isMultiTileBld(tool)){
+    var bby2=y-(b.bh-1);
+    if(!canPlaceBuilding(x,bby2,b.bw,b.bh))return false;
+    if(b.road&&!hasRoadNearRect(x,bby2,b.bw,b.bh))return false;
+    return true;
+  }
+  if(cur!==T_CLEAR&&cur!==T_EMPTY)return false;
+  if(b.road&&!hasRoad(x,y))return false;
+  return true;
+}
+
+// ── CONFIRM MODAL ──
+var _confirmPending = null; // {x, y, tool}
+
+function showConfirm(x, y, tool){
+  var b = BD[tool]; if(!b) return;
+  _confirmPending = {x:x, y:y, tool:tool};
+
+  // Determine anchor
+  var ax=x, ay=y;
+  if(b.sz>0) ay=y-(b.sz-1);
+  else if(b.bh>1) ay=y-(b.bh-1);
+
+  // Build info rows
+  var rows='';
+  if(b.vis) rows+='👥 +'+b.vis+' visitatori/g\n';
+  if(b.pw>0) rows+='⚡ +'+b.pw+' energia\n';
+  if(b.pw<0) rows+='⚡ '+b.pw+' consumo\n';
+  if(b.sec>0) rows+='🔒 +'+b.sec+' sicurezza\n';
+  if(b.sec<0) rows+='🔒 '+b.sec+' sicurezza\n';
+  if(b.sat) rows+='😊 +'+b.sat+' soddisfazione\n';
+  if(b.maint) rows+='💸 -$'+b.maint+'/g manutenzione\n';
+  if(b.rp) rows+='🔬 +'+b.rp+' RP/g\n';
+  if(b.sz>0) rows+='📐 '+b.sz+'×'+b.sz+' tile\n';
+  else if(b.bw>1||b.bh>1) rows+='📐 '+b.bw+'×'+b.bh+' tile\n';
+
+  document.getElementById('confirm-title').textContent=b.icon+' '+b.lbl.toUpperCase();
+  document.getElementById('confirm-info').textContent=rows.trim();
+  document.getElementById('confirm-cost').textContent='Costo: $'+b.cost.toLocaleString()+'  |  Saldo: $'+G.money.toLocaleString();
+
+  // Draw preview on canvas
+  var pv=document.getElementById('confirm-preview');
+  var pc=pv.getContext('2d');
+  var pvSize=120;
+  pv.width=pvSize; pv.height=pvSize;
+  pc.clearRect(0,0,pvSize,pvSize);
+  pc.fillStyle='#0a120a'; pc.fillRect(0,0,pvSize,pvSize);
+
+  if(b.sz>0){
+    // Dino enclosure preview
+    var cellPx=Math.floor(pvSize/b.sz);
+    // Ground
+    pc.fillStyle='#1a2e10'; pc.fillRect(0,0,pvSize,pvSize);
+    // Electric border
+    pc.strokeStyle='#39ff14'; pc.lineWidth=3;
+    pc.shadowColor='#39ff14'; pc.shadowBlur=8;
+    pc.strokeRect(2,2,pvSize-4,pvSize-4);
+    pc.shadowBlur=0; pc.lineWidth=1;
+    // Dino centered
+    pc.save(); pc.translate(pvSize/2, pvSize/2);
+    var ds=b.sz===3?2.2:1.6;
+    pc.scale(ds,ds);
+    drawDinoShapeOnCtx(pc, tool);
+    pc.restore();
+    pc.font='bold 9px monospace'; pc.fillStyle='#ffcc44';
+    pc.textAlign='center'; pc.textBaseline='bottom';
+    pc.fillText(b.lbl.toUpperCase(), pvSize/2, pvSize-4);
+  } else if(b.bw>1||b.bh>1){
+    // Multi-tile building preview
+    var sc=pvSize/Math.max(b.bw,b.bh)/36; // scale factor
+    pc.save(); pc.scale(pvSize/(Math.max(b.bw,b.bh)*36),pvSize/(Math.max(b.bw,b.bh)*36));
+    drawBuildingTile(pc, b.id, tool, 0, 0, 36*Math.max(b.bw,b.bh));
+    pc.restore();
+    pc.strokeStyle='#39ff14'; pc.lineWidth=2;
+    pc.strokeRect(1,1,pvSize-2,pvSize-2);
+  } else {
+    // Single tile building preview
+    drawBuildingTile(pc, b.id, tool, 0, 0, pvSize);
+    pc.strokeStyle='#39ff14'; pc.lineWidth=2;
+    pc.strokeRect(1,1,pvSize-2,pvSize-2);
+  }
+
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+function hideConfirm(){
+  document.getElementById('confirm-modal').classList.remove('show');
+  _confirmPending=null;
+}
+
+function confirmBuild(){
+  if(!_confirmPending){hideConfirm();return;}
+  var x=_confirmPending.x, y=_confirmPending.y, tool=_confirmPending.tool;
+  hideConfirm();
+  doPlace(x, y, tool);
+}
+
+// Thin wrapper: draw dino shape on arbitrary context
+function drawDinoShapeOnCtx(c, key){
+  // Temporarily swap ctx, draw, restore
+  var saved=ctx; ctx=c;
+  drawDinoShape(key,2);
+  ctx=saved;
+}
+
+document.getElementById('confirm-ok').addEventListener('click', confirmBuild);
+document.getElementById('confirm-cancel').addEventListener('click', hideConfirm);
+// Close on backdrop click
+document.getElementById('confirm-modal').addEventListener('click', function(e){if(e.target===this)hideConfirm();});
+// ESC closes modal too
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&document.getElementById('confirm-modal').classList.contains('show')){hideConfirm();}
+});
+
+// ── TOOLS THAT SKIP CONFIRM (fast actions) ──
+var SKIP_CONFIRM = {demolish:1, clear:1, road:1, fence:1};
+
+function place(x,y){
+  if(!G.alive)return;if(x<0||x>=MAP_W||y<0||y>=MAP_H)return;
+  var cur=grid[y][x];
+  if(selectedTool==='workshop'){var enc2=enclosureAt(x,y);if(enc2){manualRepair(enc2);return;}}
+  if(selectedTool==='demolish'){demolish(x,y);return;}
+  var b=BD[selectedTool];if(!b)return;
+
+  // Validate placement first (show errors immediately, no modal)
+  var valid=false;
+  if(isDino(selectedTool)){
+    var byC=y-(b.sz-1);
+    if(!canPlaceEnclosure(x,byC,b.sz)){if(cur===T_JUNGLE)log('Abbatti prima la giungla! 🪓','w');else log('Non c\'è spazio per un recinto '+b.sz+'x'+b.sz+'!','w');return;}
+    if(b.road&&!hasRoadNear(x,byC,b.sz)){log('⚠ Il recinto deve essere vicino a una strada!','w');return;}
+    valid=true;
+  } else if(isMultiTileBld(selectedTool)){
+    var bbyC=y-(b.bh-1);
+    if(!canPlaceBuilding(x,bbyC,b.bw,b.bh)){if(cur===T_JUNGLE)log('Abbatti prima la giungla! 🪓','w');else log('Non c\'è spazio per '+b.lbl+'!','w');return;}
+    if(b.road&&!hasRoadNearRect(x,bbyC,b.bw,b.bh)){log('⚠ '+b.lbl+' richiede una strada adiacente!','w');return;}
+    valid=true;
+  } else {
+    if(!canPlace(x,y,selectedTool)){
+      if(cur===T_JUNGLE)log('Abbatti prima la giungla! 🪓','w');
+      else if(cur!==T_CLEAR&&cur!==T_EMPTY)log('Cella occupata!','w');
+      else if(b.road&&!hasRoad(x,y))log('⚠ Richiede strada adiacente!','w');
+      return;
+    }
+    valid=true;
+  }
+  if(!valid)return;
+  if(G.money<b.cost){log('Fondi insufficienti! ($'+b.cost.toLocaleString()+')','d');return;}
+
+  // Skip confirm for cheap/fast tools
+  if(SKIP_CONFIRM[selectedTool]){doPlace(x,y,selectedTool);return;}
+
+  // Show confirm modal
+  showConfirm(x, y, selectedTool);
+}
+
+function doPlace(x, y, tool){
+  var b=BD[tool]; if(!b)return;
+  var cur=grid[y][x];
+
+  // ── DINO ENCLOSURE ──
+  if(isDino(tool)){
+    var by=y-(b.sz-1);
+    G.money-=b.cost;
+    for(var jj=by;jj<by+b.sz;jj++)for(var ii=x;ii<x+b.sz;ii++)grid[jj][ii]=T_ENC_MARKER;
+    var enc={key:tool,bx:x,by:by,sz:b.sz,dinos:[]};
+    spawnEnclosureDinos(enc);enclosures.push(enc);
+    recalc();draw();drawMini();updateUI();snd('build');triggerBuildFlash(x,by,b.sz);
+    log('Recinto '+b.lbl+' ('+b.sz+'×'+b.sz+') costruito! (-$'+b.cost.toLocaleString()+')','g');return;
+  }
+
+  // ── MULTI-TILE BUILDING ──
+  if(isMultiTileBld(tool)){
+    var bby=y-(b.bh-1);
+    G.money-=b.cost;
+    for(var bjj=bby;bjj<bby+b.bh;bjj++)
+      for(var bii=x;bii<x+b.bw;bii++)
+        grid[bjj][bii]=T_BLD_MARKER;
+    grid[bby][x]=b.id;
+    buildings.push({key:tool,bx:x,by:bby,bw:b.bw,bh:b.bh,energy:100});
+    recalc();draw();drawMini();updateUI();snd('build');triggerBuildFlash(x,bby,Math.max(b.bw,b.bh));
+    log('Costruito: '+b.lbl+' ('+b.bw+'×'+b.bh+') (-$'+b.cost.toLocaleString()+')','g');return;
+  }
+
+  // ── SINGLE TILE ──
+  G.money-=b.cost;grid[y][x]=b.id;
+  // track single-tile building energy via singleBldEnergy map keyed "x,y"
+  singleBldEnergy[x+','+y]=100;
+  recalc();draw();drawMini();updateUI();snd('build');triggerBuildFlash(x,y,1);
+  log('Costruito: '+b.lbl+' (-$'+b.cost.toLocaleString()+')','g');
+}
+
+function demolish(x,y){
+  if(x<0||x>=MAP_W||y<0||y>=MAP_H)return;
+  var enc=enclosureAt(x,y);
+  if(enc){removeEnclosure(enc);recalc();draw();drawMini();updateUI();snd('demo');log('Recinto '+BD[enc.key].lbl+' demolito','w');return;}
+  var bld=buildingAt(x,y);
+  if(bld){removeBuilding(bld);recalc();draw();drawMini();updateUI();snd('demo');log('Demolito: '+BD[bld.key].lbl,'w');return;}
+  var cur=grid[y][x];if(cur<=T_JUNGLE||cur===T_OCEAN)return;
+  var bk=ID2K[cur];grid[y][x]=T_CLEAR;
+  delete singleBldEnergy[x+','+y];
+  recalc();draw();drawMini();updateUI();snd('demo');
+  log('Demolito: '+(bk?BD[bk].lbl:'struttura'),'w');
+}
+
+function showTooltip(mx,my,x,y){
+  var tt=document.getElementById('tooltip');
+  if(x<0||x>=MAP_W||y<0||y>=MAP_H){tt.style.display='none';return;}
+  var t=grid[y][x],bk=ID2K[t],html='';
+  var encHov=enclosureAt(x,y);
+  if(encHov&&t===T_ENC_MARKER){
+    var be=BD[encHov.key],en=Math.round(encHov.energy||0),ec=en>60?'#39ff14':en>25?'#ffb300':'#ff3333';
+    html='<span style="color:#39ff14">'+be.icon+' '+be.lbl+'</span><br>';
+    html+='<span style="color:'+ec+'">⚡ Energia: '+en+'%</span><br>';
+    if(be.vis)html+='👥 +'+be.vis+'/g<br>';
+    html+='<span style="color:#aaa;font-size:9px">🔧 Clicca per riparare</span>';
+    tt.innerHTML=html;tt.style.display='block';tt.style.left=(mx+14)+'px';tt.style.top=(my-10)+'px';return;
+  }
+  if(t===T_EMPTY||t===T_CLEAR){var adj=hasRoad(x,y);html='<span style="color:'+(t===T_CLEAR?'#6a9a4a':'#3a6a3a')+'">'+(t===T_CLEAR?'Terreno liberato':'Terreno')+'</span><br><span style="color:'+(adj?'#39ff14':'#ff8800')+'">'+(adj?'✓ Adiacente a strada':'✗ Non adiacente')+'</span>';}
+  else if(t===T_OCEAN){html='<span style="color:#3a8abf">🌊 Oceano — non edificabile</span>';}
+  else if(t===T_JUNGLE){html='<span style="color:#2a6a1a">🌿 Giungla — usa 🪓</span>';}
+  else if(t===T_ROAD){html='<span style="color:#7a6a44">🛤 Strada</span>';}
+  else if(bk){var b=BD[bk];html='<span style="color:#39ff14">'+b.icon+' '+b.lbl+'</span><br>';if(b.vis)html+='👥 +'+b.vis+'/g<br>';if(b.pw>0)html+='⚡ +'+b.pw+'<br>';if(b.pw<0)html+='⚡ '+b.pw+'<br>';if(b.sec!==0)html+='🔒 '+(b.sec>0?'+':'')+b.sec+'<br>';if(b.rp)html+='🔬 +'+b.rp+'RP/g<br>';if(b.maint)html+='💸 $'+b.maint+'/g';}
+  if(!html){tt.style.display='none';return;}
+  tt.innerHTML=html;tt.style.display='block';tt.style.left=(mx+14)+'px';tt.style.top=(my-10)+'px';
+}
+
+var _icTimer=null;
+var _icLastTool=null;
+
+function hideInfoCard(){
+  var ic=document.getElementById('info-card');
+  ic.classList.add('collapsed');
+}
+function showInfoCard(){
+  var ic=document.getElementById('info-card');
+  ic.classList.remove('collapsed');
+}
+
+function setTool(type){
+  // If clicking the same tool again → toggle off the info card
+  if(type===_icLastTool && type!=='demolish'){
+    var ic=document.getElementById('info-card');
+    if(!ic.classList.contains('collapsed')){
+      hideInfoCard();
+      if(_icTimer){clearTimeout(_icTimer);_icTimer=null;}
+      return;
+    }
+  }
+  _icLastTool=type;
+
+  selectedTool=type;
+  document.querySelectorAll('.bld-btn').forEach(function(btn){btn.classList.toggle('active',btn.getAttribute('data-b')===type);});
+  var vp=document.getElementById('viewport');vp.className=type==='clear'?'clearing':type!=='demolish'?'building':'';
+  var inner=document.getElementById('ic-inner'),empty=document.getElementById('ic-empty'),b=BD[type];
+  if(!b){inner.style.display='none';empty.style.display='block';hideInfoCard();return;}
+
+  inner.style.display='block';empty.style.display='none';
+  document.getElementById('ic-icon').textContent=b.icon;document.getElementById('ic-name').textContent=b.lbl.toUpperCase();
+  var rows='';
+  if(b.cost>0)rows+='<div class="ic-row"><span class="ik">Costo</span><span style="color:var(--amber)">$'+b.cost.toLocaleString()+'</span></div>';
+  if(b.maint>0)rows+='<div class="ic-row"><span class="ik">Manutenzione</span><span style="color:var(--red)">-$'+b.maint+'/g</span></div>';
+  if(b.vis)rows+='<div class="ic-row"><span class="ik">Visitatori</span><span style="color:var(--neon)">+'+b.vis+'/g</span></div>';
+  if(b.pw>0)rows+='<div class="ic-row"><span class="ik">Energia</span><span style="color:var(--blue)">+'+b.pw+'</span></div>';
+  if(b.pw<0)rows+='<div class="ic-row"><span class="ik">Consumo</span><span style="color:var(--amber)">'+b.pw+'⚡</span></div>';
+  if(b.sec>0)rows+='<div class="ic-row"><span class="ik">Sicurezza</span><span style="color:var(--neon)">+'+b.sec+'</span></div>';
+  if(b.sec<0)rows+='<div class="ic-row"><span class="ik">Sicurezza</span><span style="color:var(--red)">'+b.sec+'</span></div>';
+  if(b.rp)rows+='<div class="ic-row"><span class="ik">Ricerca</span><span style="color:var(--purple)">+'+b.rp+'RP/g</span></div>';
+  var desc=TOOL_DESC[type]||'';
+  document.getElementById('ic-body').innerHTML=rows+(desc?'<div class="ic-desc">'+desc+'</div>':'');
+
+  // Show the card
+  showInfoCard();
+
+  // Auto-hide after 4 seconds
+  if(_icTimer)clearTimeout(_icTimer);
+  _icTimer=setTimeout(function(){hideInfoCard();_icTimer=null;},4000);
+}
+document.querySelectorAll('.bld-btn').forEach(function(btn){btn.addEventListener('click',function(e){e.stopPropagation();setTool(btn.getAttribute('data-b'));});});
+
+document.querySelectorAll('.tab').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});tab.classList.add('active');
+    ['build','research','missions','stats'].forEach(function(id){var el=document.getElementById('tab-'+id);if(el)el.style.display=tab.getAttribute('data-tab')===id?'block':'none';});
+    if(tab.getAttribute('data-tab')==='stats')drawChart();
+  });
+});
+
+function buildResearchUI(){
+  var el=document.getElementById('research-list');if(!el)return;
+  el.innerHTML='';document.getElementById('rp-val').textContent=G.rp;
+  for(var i=0;i<RESEARCH.length;i++){
+    (function(r){
+      var div=document.createElement('div');div.className='res-card'+(r.done?' done':'');div.id='rc-'+r.id;
+      div.innerHTML='<div class="rn">'+(r.done?'✓ ':'')+r.name+'</div><div class="rd">'+r.desc+'</div><div class="rc">'+r.cost+' RP</div>';
+      var btn=document.createElement('button');btn.textContent=r.done?'Completato':'Ricerca';btn.disabled=r.done||G.rp<r.cost;
+      btn.addEventListener('click',function(){if(r.done||G.rp<r.cost)return;G.rp-=r.cost;r.done=true;r.apply();recalc();updateUI();buildResearchUI();snd('mission');log('🔬 Ricerca: '+r.name+'!','g');});
+      div.appendChild(btn);el.appendChild(div);
+    })(RESEARCH[i]);
+  }
+}
+
+function buildMissionsUI(){
+  var el=document.getElementById('missions-list');if(!el)return;el.innerHTML='';
+  var pend=[],done=[];for(var i=0;i<MISSIONS.length;i++)(MISSIONS[i].done?done:pend).push(MISSIONS[i]);
+  pend.concat(done).forEach(function(m){
+    var div=document.createElement('div');div.className='mis-card'+(m.done?' done':'');
+    div.innerHTML='<div class="mn">'+(m.done?'✓ ':'')+m.name+'</div><div class="md">'+m.desc+'</div><div class="mr">+$'+m.reward.toLocaleString()+(m.rp?' +'+m.rp+'RP':'')+'</div>';
+    el.appendChild(div);
+  });
+}
+
+function checkMissions(){
+  var any=false;
+  for(var i=0;i<MISSIONS.length;i++){var m=MISSIONS[i];if(!m.done&&m.check()){m.done=true;G.money+=m.reward;G.rp+=m.rp;log('🎯 MISSIONE: '+m.name+' +$'+m.reward.toLocaleString(),'g');snd('mission');any=true;}}
+  if(any)buildMissionsUI();
+}
+
+function drawChart(){
+  var cc=document.getElementById('chart-canvas');if(!cc)return;
+  var cx=cc.getContext('2d'),W=cc.width,H=cc.height;cx.clearRect(0,0,W,H);cx.fillStyle='#060e06';cx.fillRect(0,0,W,H);
+  if(visHistory.length<2)return;
+  var maxV=Math.max.apply(null,visHistory.concat([1])),maxI=Math.max.apply(null,incHistory.map(function(v){return Math.abs(v);}).concat([1]));
+  var n=visHistory.length,step=W/(n-1);
+  cx.strokeStyle='rgba(30,74,30,0.4)';cx.lineWidth=0.5;for(var gi=0;gi<4;gi++){cx.beginPath();cx.moveTo(0,H*gi/3);cx.lineTo(W,H*gi/3);cx.stroke();}
+  cx.beginPath();cx.strokeStyle='#ffb300';cx.lineWidth=1;for(var ii=0;ii<incHistory.length;ii++){var iy=H-(incHistory[ii]+maxI)/(maxI*2)*H;ii===0?cx.moveTo(0,iy):cx.lineTo(ii*step,iy);}cx.stroke();
+  cx.shadowColor='#39ff14';cx.shadowBlur=3;cx.beginPath();cx.strokeStyle='#39ff14';cx.lineWidth=1.5;for(var vi=0;vi<visHistory.length;vi++){var vy=H-visHistory[vi]/maxV*(H-4)-2;vi===0?cx.moveTo(0,vy):cx.lineTo(vi*step,vy);}cx.stroke();cx.shadowBlur=0;
+  cx.font='8px monospace';cx.fillStyle='#39ff14';cx.fillText('👥'+G.vis,2,10);cx.fillStyle='#ffb300';cx.fillText('$'+(G.inc-G.costs),2,20);
+}
+
+// ── ENCLOSURE ENERGY & COLLAPSE ──
+function decayEnclosureEnergy(){
+  for(var i=enclosures.length-1;i>=0;i--){
+    var enc=enclosures[i];
+    if(enc.energy===undefined)enc.energy=100;
+    var b=BD[enc.key];if(!b)continue;
+    var decay=b.danger?5:3;
+    enc.energy=Math.max(0,enc.energy-decay);
+
+    if(enc.energy<=0){
+      // ── ENCLOSURE COLLAPSE ──
+      collapseEnclosure(enc,i);
+    } else if(enc.energy<=25){
+      log('⚠ CRITICO: recinto '+b.lbl+' al '+Math.round(enc.energy)+'% — COLLASSO IMMINENTE!','d');
+    } else if(enc.energy<=50){
+      log('⚠ Energia bassa: recinto '+b.lbl+' al '+Math.round(enc.energy)+'%','w');
+    }
+  }
+}
+
+function collapseEnclosure(enc,idx){
+  var b=BD[enc.key];
+  // Remove the enclosure from the grid and array
+  removeEnclosure(enc);
+  // If dangerous, spawn loose dinos
+  if(b&&b.danger){
+    var count=enc.sz===3?2:1;
+    var vp=document.getElementById('viewport');
+    var W=vp?vp.clientWidth:400,H=vp?vp.clientHeight:300;
+    for(var d=0;d<count;d++){
+      var spd=enc.key==='raptor'?1.4:enc.key==='spino'?0.9:1.1;
+      looseDinos.push({
+        key:enc.key,
+        x:enc.bx*TS+enc.sz*TS/2-camX,
+        y:enc.by*TS+enc.sz*TS/2-camY,
+        vx:(Math.random()-0.5)*spd*2,
+        vy:(Math.random()-0.5)*spd*2,
+        spd:spd,
+        age:0,
+        kills:0,
+        active:true,
+      });
+    }
+    // Infirmary reduces victim count
+    var encCx=enc.bx+enc.sz/2, encCy=enc.by+enc.sz/2;
+    var victMult=infirmaryVictimMult(encCx,encCy);
+    var baseKills=enc.sz===3?Math.floor(Math.random()*5)+2:Math.floor(Math.random()*3)+1;
+    var kills=Math.max(0,Math.round(baseKills*victMult));
+    var hasInf=victMult<1.0;
+    // Cap damage to avoid instant ruin — max $30k per incident
+    var dmg=Math.min(30000, kills*8000+Math.floor(Math.random()*5000)+3000);
+    G.money=Math.max(0,G.money-dmg);
+    G.vis=Math.max(0,G.vis-kills*15);
+    G.victims=(G.victims||0)+kills;
+    log('💥 RECINTO COLLASSATO: '+b.lbl+'! '+count+' dino liberi!','d');
+    if(hasInf)log('🏥 Infermeria interviene: vittime ridotte a '+kills+' (da '+baseKills+')','g');
+    log('🩸 '+kills+' vittime — panico! -$'+dmg.toLocaleString()+' | Totale: '+G.victims+'/40','d');
+    snd('escape');snd('escape');
+    // Flash red alert
+    document.getElementById('alert-bar').textContent='🦖 FUGA! '+b.lbl.toUpperCase()+' LIBERO — '+kills+' VITTIME';
+    spawnFug();spawnFug();
+    if(G.victims>=40){setTimeout(function(){endGame(false,'vittime');},800);return;}
+  } else {
+    log('⚡ Recinto '+b.lbl+' collassato per mancanza di energia. Ricostruirlo!','w');
+  }
+  recalc();draw();drawMini();updateUI();
+}
+
+function updateLooseDinos(){
+  if(looseDinos.length===0)return;
+  var vp=document.getElementById('viewport');
+  if(!vp)return;
+  var W=vp.clientWidth,H=vp.clientHeight;
+  for(var i=looseDinos.length-1;i>=0;i--){
+    var d=looseDinos[i];
+    d.age++;
+    // Drift around screen
+    if(Math.random()<0.03){d.vx+=(Math.random()-0.5)*0.6;d.vy+=(Math.random()-0.5)*0.6;}
+    var spd2=Math.sqrt(d.vx*d.vx+d.vy*d.vy);
+    if(spd2>d.spd){d.vx=d.vx/spd2*d.spd;d.vy=d.vy/spd2*d.spd;}
+    if(spd2<0.3){d.vx=(Math.random()-0.5)*d.spd;d.vy=(Math.random()-0.5)*d.spd;}
+    d.x+=d.vx*2;d.y+=d.vy*2;
+    // Bounce off viewport edges
+    if(d.x<20){d.x=20;d.vx=Math.abs(d.vx);}
+    if(d.x>W-20){d.x=W-20;d.vx=-Math.abs(d.vx);}
+    if(d.y<20){d.y=20;d.vy=Math.abs(d.vy);}
+    if(d.y>H-20){d.y=H-20;d.vy=-Math.abs(d.vy);}
+    // After 600 frames (captured/neutralised)
+    if(d.age>600)looseDinos.splice(i,1);
+  }
+}
+
+function drawLooseDinos(){
+  if(looseDinos.length===0)return;
+  var wt=Date.now()/1000;
+  for(var i=0;i<looseDinos.length;i++){
+    var d=looseDinos[i];
+    var b=BD[d.key];if(!b)continue;
+    ctx.save();
+    // Draw on viewport coordinates (not map coordinates)
+    // We draw on the map canvas which is offset by camX/camY
+    // So convert: map_canvas_x = screen_x - camX already done by translation
+    // Actually looseDinos use screen coords, so we need to draw at d.x-camX offset
+    // Simpler: draw directly at d.x,d.y but we need to account for canvas transform
+    // canvas is translated by camX,camY via style transform, not ctx transform
+    // So to draw at a fixed screen position on the canvas we offset by -camX,-camY
+    ctx.translate(d.x-camX, d.y-camY);
+    var angle=Math.atan2(d.vy,d.vx);
+    ctx.rotate(angle);
+    if(d.vx<0)ctx.scale(-1,1);
+    // Red danger glow
+    ctx.shadowColor='#ff2200';ctx.shadowBlur=16+Math.sin(wt*4)*6;
+    // Draw dino shape scaled up (scary)
+    var sc=d.key==='trex'||d.key==='spino'?1.8:1.4;
+    ctx.scale(sc,sc);
+    drawDinoShape(d.key,2);
+    ctx.shadowBlur=0;
+    ctx.restore();
+    // RED circle indicator
+    ctx.save();
+    ctx.translate(d.x-camX,d.y-camY);
+    ctx.strokeStyle='rgba(255,30,30,0.6)';ctx.lineWidth=2;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.arc(0,0,22,0,Math.PI*2);ctx.stroke();
+    ctx.setLineDash([]);ctx.lineWidth=1;
+    // Danger label
+    ctx.fillStyle='#ff3333';ctx.font='bold 8px monospace';
+    ctx.textAlign='center';ctx.textBaseline='bottom';
+    ctx.fillText('⚠ '+b.lbl.toUpperCase(),0,-24);
+    ctx.restore();
+  }
+}
+
+// Daily damage from loose dinos still roaming
+function looseDinoDailyDamage(){
+  if(looseDinos.length===0)return;
+  for(var i=0;i<looseDinos.length;i++){
+    var d=looseDinos[i];
+    var b=BD[d.key];if(!b)continue;
+    var kills=b.danger?(d.key==='trex'||d.key==='spino'?Math.floor(Math.random()*2)+1:1):0;
+    if(kills>0){
+      var dmg=kills*8000;
+      G.money=Math.max(0,G.money-dmg);
+      G.victims=(G.victims||0)+kills;
+      log('🦖 '+b.lbl+' libero attacca ancora! '+kills+' vittime -$'+dmg.toLocaleString()+' | Totale: '+G.victims+'/40','d');
+      snd('escape');
+      if(G.victims>=40){endGame(false,'vittime');}
+    }
+  }
+}
+
+function workshopsInRange(enc){
+  var range=(BD.workshop&&BD.workshop.repairRange)||8;
+  var ws=[],ecx=enc.bx+enc.sz/2,ecy=enc.by+enc.sz/2;
+  for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++){
+    if(grid[j][i]===T_WORKSHOP){var dx=i-ecx,dy=j-ecy;if(Math.sqrt(dx*dx+dy*dy)<=range)ws.push({x:i,y:j});}
+  }
+  return ws;
+}
+
+function autoWorkshopRepair(){
+  var b=BD.workshop;
+  for(var i=0;i<enclosures.length;i++){
+    var enc=enclosures[i];if((enc.energy||100)>=100)continue;
+    if(workshopsInRange(enc).length===0)continue;
+    var cost=b.repairCost||500;
+    if(G.money>=cost){
+      G.money-=cost;var repaired=Math.min(100-(enc.energy||0),b.repairPerDay||20);
+      enc.energy=Math.min(100,(enc.energy||0)+repaired);
+      if(repaired>5)log('🔧 Officina: +'+Math.round(repaired)+'% a '+BD[enc.key].lbl+' -$'+cost,'i');
+    }else{log('🔧 Officina: fondi insufficienti per '+BD[enc.key].lbl+'!','w');}
+  }
+}
+
+function manualRepair(enc){
+  var cost=2000;if(G.money<cost){log('Fondi insufficienti per riparazione! ($'+cost+')','d');return;}
+  G.money-=cost;var old=enc.energy||0;enc.energy=Math.min(100,old+50);
+  log('🔧 Riparazione manuale: '+BD[enc.key].lbl+' '+Math.round(old)+'%→'+Math.round(enc.energy)+'% (-$'+cost+')','g');
+  snd('build');updateUI();draw();
+}
+
+function updateUI(){
+  G.money=Math.max(0,G.money);
+  document.getElementById('v-money').textContent='$'+G.money.toLocaleString();
+  document.getElementById('v-vis').textContent=G.vis;
+  document.getElementById('v-pow').textContent=G.pow;
+  document.getElementById('v-pneed').textContent=G.powNeed;
+  document.getElementById('v-sec').textContent=G.sec;
+  document.getElementById('v-rp').textContent=G.rp;
+  document.getElementById('day-info').textContent='G.'+G.day;
+  var wi=document.getElementById('weather-info');
+  if(wi)wi.textContent=WEATHER_ICONS[weather]||'☀️';
+  var net=G.inc-G.costs;
+
+  // Finanze
+  document.getElementById('sv-inc').textContent='+$'+G.inc.toLocaleString();
+  document.getElementById('sv-cost').textContent='-$'+G.costs.toLocaleString();
+  var ne=document.getElementById('sv-net');
+  ne.textContent=(net>=0?'+':'')+net.toLocaleString();
+  ne.className='stat-val '+(net>=0?'good':'bad');
+
+  // Visitatori / obiettivo
+  document.getElementById('sv-vis').textContent=G.vis;
+  var visPct=Math.min(100,Math.floor(G.vis/1000*100));
+  document.getElementById('sv-prog').textContent=visPct+'%';
+  document.getElementById('bar-vis').style.width=visPct+'%';
+  var visCol=visPct>=80?'#39ff14':visPct>=40?'#ffb300':'var(--neon)';
+  document.getElementById('bar-vis').style.background=visCol;
+
+  // Soddisfazione
+  var satCol=G.sat>=70?'#39ff14':G.sat>=40?'#ffb300':'#ff3333';
+  document.getElementById('sv-sat').textContent=G.sat+'%';
+  document.getElementById('sv-sat').style.color=satCol;
+  document.getElementById('bar-sat').style.width=G.sat+'%';
+  document.getElementById('bar-sat').style.background=satCol;
+  var satLbl=G.sat>=80?'😄 Eccellente':G.sat>=60?'🙂 Buona':G.sat>=40?'😐 Nella media':'😞 Bassa';
+  var sl=document.getElementById('sv-sat-label');if(sl){sl.textContent=satLbl;sl.style.color=satCol;}
+
+  // Energia
+  document.getElementById('sv-pow').textContent=G.pow+'/'+G.powNeed;
+  document.getElementById('sv-pow-gen').textContent=G.pow;
+  document.getElementById('sv-pow-need').textContent=G.powNeed;
+  var powPct=G.powNeed>0?Math.min(100,Math.floor(G.pow/G.powNeed*100)):100;
+  document.getElementById('bar-pow').style.width=powPct+'%';
+  var powCol=G.pow>=G.powNeed?'var(--blue)':'#ff8800';
+  document.getElementById('bar-pow').style.background=powCol;
+  document.getElementById('sv-pow-need').style.color=G.pow>=G.powNeed?'var(--text)':'var(--red)';
+
+  // Sicurezza
+  var secCol=G.sec<0?'#ff3333':G.sec<3?'#ffb300':'#39ff14';
+  var secLabel=G.sec<0?'⚠ CRITICA':G.sec<3?'⚠ Bassa':G.sec<8?'✓ Buona':'✓ Ottima';
+  document.getElementById('sv-sec2').textContent=G.sec;
+  document.getElementById('sv-sec2').style.color=secCol;
+  document.getElementById('sv-sec-label').textContent=secLabel;
+  document.getElementById('sv-sec-label').style.color=secCol;
+  document.getElementById('bar-sec').style.width=Math.min(100,Math.max(0,Math.floor((G.sec+5)/20*100)))+'%';
+  document.getElementById('bar-sec').style.background=secCol;
+
+  // Riepilogo parco
+  var sbld=document.getElementById('sv-bld');if(sbld)sbld.textContent=G.bld;
+  var senc=document.getElementById('sv-enc');if(senc)senc.textContent=G.enc;
+  var srp2=document.getElementById('sv-rp2');if(srp2)srp2.textContent=G.rp;
+  var sday=document.getElementById('sv-day');if(sday)sday.textContent=G.day;
+
+  // Energia recinti
+  var encList=document.getElementById('enc-energy-list');
+  if(encList){
+    if(enclosures.length===0){
+      encList.innerHTML='<span style="color:var(--dim);font-size:9px;">Nessun recinto costruito</span>';
+    } else {
+      encList.innerHTML='';
+      for(var ei=0;ei<enclosures.length;ei++){
+        var enc=enclosures[ei],en=Math.round(enc.energy||0);
+        var ec=en>60?'#39ff14':en>25?'#ffb300':'#ff3333';
+        var label=BD[enc.key]?BD[enc.key].icon+' '+BD[enc.key].lbl:'?';
+        var row=document.createElement('div');
+        row.style.cssText='margin-bottom:5px;';
+        row.innerHTML=
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
+          +'<span style="font-size:9px;color:var(--text);">'+label+'</span>'
+          +'<span style="font-size:9px;font-weight:bold;color:'+ec+';">'+en+'%</span>'
+          +'</div>'
+          +'<div style="width:100%;height:5px;background:#0d1a0d;border-radius:3px;border:1px solid var(--border);overflow:hidden;">'
+          +'<div style="width:'+en+'%;height:100%;background:'+ec+';border-radius:3px;transition:width 0.4s;'+(en<=25?'box-shadow:0 0 4px '+ec+';':'')+'"></div>'
+          +'</div>';
+        encList.appendChild(row);
+      }
+    }
+  }
+
+  // Alerts
+  var alerts=[];
+  if(G.pow<G.powNeed)alerts.push('⚡ BLACKOUT');
+  if(G.sec<0)alerts.push('🔒 SICUREZZA CRITICA');
+  if(G.money<5000)alerts.push('💸 FONDI BASSI');
+  var lowEnc=enclosures.filter(function(e){return(e.energy||100)<=25;});
+  if(lowEnc.length>0)alerts.push('🔋 RECINTO SCARICO!');
+  if(looseDinos.length>0)alerts.push('🦖 '+looseDinos.length+' DINO IN FUGA!');
+  var sickEnc=enclosures.filter(function(e){return!!e.disease;});
+  if(sickEnc.length>0)alerts.push('🦠 '+sickEnc.length+' DINO MALAT'+(sickEnc.length>1?'I':'O')+'!');
+  if(weather==='storm')alerts.push('🌀 TEMPESTA IN CORSO!');
+  else if(weather==='rain')alerts.push('🌧 PIOGGIA');
+  document.getElementById('alert-bar').textContent=alerts.join('  ');
+
+  // Buttons affordability
+  document.querySelectorAll('.bld-btn').forEach(function(btn){
+    var t=btn.getAttribute('data-b');if(!t||t==='demolish')return;
+    var b=BD[t];if(!b)return;btn.disabled=G.money<b.cost;
+  });
+  for(var i=0;i<RESEARCH.length;i++){
+    var rb=document.querySelector('#rc-'+RESEARCH[i].id+' button');
+    if(rb&&!RESEARCH[i].done)rb.disabled=G.rp<RESEARCH[i].cost;
+  }
+}
+
+function nextDay(){
+  var net=G.inc-G.costs;G.money+=net;G.rp+=G.rpd;G.day++;
+  advanceWeather();applyWeatherEffects();
+  decayEnclosureEnergy();autoWorkshopRepair();
+  decayBuildingEnergy();autoRepairBuildings();
+  if(G.day>10)processDiseases();
+  looseDinoDailyDamage();
+  rangerCatchDinos();
+  if(G.day>10)randomEvent();recalc();checkMissions();
+  visHistory.push(G.vis);incHistory.push(G.inc-G.costs);
+  if(visHistory.length>40){visHistory.shift();incHistory.shift();}
+  updateUI();draw();buildResearchUI();
+  if(document.querySelector('.tab.active[data-tab="stats"]'))drawChart();
+  snd('day');save();
+  if(G.money<0){endGame(false,'bancarotta');return;}if(G.vis>=1000){endGame(true);return;}
+  if(G.sec<0&&Math.random()<0.65){spawnFug();}else if(G.sec<2&&Math.random()<0.2){spawnFug();}
+  var wIcon=WEATHER_ICONS[weather]||'';
+  var logType=net>=0?'g':'d';
+  log('G.'+G.day+' '+wIcon+' | '+(net>=0?'+':'')+net.toLocaleString()+' | 👥'+G.vis+(G.rpd?' +'+G.rpd+'RP':'')+(G.pow<G.powNeed?' ⚡':'')+(G.sec<0?' ⚠':'')+(looseDinos.length?' 🦖FUGA':''),logType);
+  if(G.pow<G.powNeed)log('⚡ BLACKOUT! Costruisci centrali.','d');
+  if(G.sec<0)log('⚠ SICUREZZA CRITICA!','d');
+  if(G.money<5000)log('💸 Fondi bassi!','w');
+  if(looseDinos.length>0)log('🦖 '+looseDinos.length+' dino ancora in libertà!','d');
+}
+
+function randomEvent(){
+  var r=Math.random();
+  if(r<0.07){var l=Math.floor(Math.random()*2000+500);G.money-=l;log('🔧 Guasto: -$'+l.toLocaleString(),'d');}
+  else if(r<0.12&&G.sec<2){G.money-=5000;log('🦖 FUGA! Panico: -$5,000','d');}
+  else if(r<0.16){var bonus=Math.floor(G.vis*10+300);G.money+=bonus;log('📰 Articolo! +$'+bonus.toLocaleString(),'g');}
+  else if(r<0.19){var rb=Math.floor(Math.random()*4)+1;G.rp+=rb;log('🔬 Scoperta! +'+rb+' RP','g');}
+  else if(r<0.23&&enclosures.length>0){var tgt=enclosures[Math.floor(Math.random()*enclosures.length)];var dmg=10+Math.floor(Math.random()*20);tgt.energy=Math.max(0,(tgt.energy||100)-dmg);log('⚡ Guasto al recinto '+BD[tgt.key].lbl+'! -'+dmg+'% energia','d');}
+}
+
+function endGame(win,reason){
+  G.alive=false;if(win)snd('win');
+  var ov=document.getElementById('overlay');ov.classList.add('show');
+  var t=document.getElementById('ov-title'),b=document.getElementById('ov-body');
+  var md=MISSIONS.filter(function(m){return m.done;}).length;
+  if(win){t.textContent='🎉 PARCO APERTO!';t.className='ov-win';b.textContent='Hai raggiunto 1000 visitatori/giorno!\nIsla Nublar è famosa in tutto il mondo.\n\nGiorno '+G.day+' | $'+G.money.toLocaleString()+'\nVisitatori: '+G.vis+' | RP: '+G.rp+'\nVittime: '+(G.victims||0)+' | Missioni: '+md+'/'+MISSIONS.length;}
+  else{t.textContent='💸 FALLIMENTO';t.className='ov-lose';b.textContent='Il parco ha chiuso al giorno '+G.day+'.\n'+(reason==='bancarotta'?'Fondi esauriti.':reason==='vittime'?'Troppi visitatori morti.\nLe autorità hanno chiuso il parco.':'Troppi incidenti.')+'\n\nVisitatori: '+G.vis+'/1000 | Vittime: '+(G.victims||0)+'\nMissioni: '+md+'/'+MISSIONS.length;}
+}
+
+function log(msg,type){var el=document.getElementById('log'),d=document.createElement('div');d.className='lg'+(type?' lg-'+type:'');d.textContent='> '+msg;el.appendChild(d);el.scrollTop=el.scrollHeight;while(el.children.length>60)el.removeChild(el.firstChild);}
+
+function openPauseMenu(){paused=true;document.getElementById('pause-overlay').classList.add('show');document.getElementById('pause-day-info').textContent='Giorno '+G.day+' | $'+G.money.toLocaleString()+' | 👥'+G.vis;document.getElementById('pm-msg').textContent='';}
+function closePauseMenu(){paused=false;document.getElementById('pause-overlay').classList.remove('show');}
+function pmMsg(txt,color){var el=document.getElementById('pm-msg');el.textContent=txt;el.style.color=color||'var(--neon)';}
+
+document.getElementById('menu-btn').addEventListener('click',function(){if(document.getElementById('pause-overlay').classList.contains('show')){closePauseMenu();}else{openPauseMenu();}});
+document.getElementById('pm-resume').addEventListener('click',function(){closePauseMenu();});
+document.getElementById('pm-save').addEventListener('click',function(){save();pmMsg('✅ Partita salvata!','#39ff14');});
+document.getElementById('pm-load').addEventListener('click',function(){var ok=load();if(ok){closePauseMenu();recalc();draw();drawMini();updateUI();buildResearchUI();buildMissionsUI();log('📂 Partita caricata — Giorno '+G.day,'g');}else{pmMsg('⚠ Nessun salvataggio trovato.','#ffb300');}});
+document.getElementById('pm-restart').addEventListener('click',function(){showGameConfirm('Ricominciare da capo?\nTutti i progressi andranno persi.',function(){closePauseMenu();clearSave();initGame(false);});});
+
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(document.getElementById('pause-overlay').classList.contains('show')){closePauseMenu();}else if(G.alive){openPauseMenu();}}});
+document.getElementById('next-day-btn').addEventListener('click',function(){if(!G.alive)return;if(paused){pmMsg('⏸ Riprendi prima la partita!','#ffb300');return;}nextDay();},true);
+
+function updateAutoBtn(){
+  document.getElementById('auto-btn').textContent='⏩ AUTO: '+(autoAdvance?'ON':'OFF');
+  document.getElementById('auto-btn').style.borderColor=autoAdvance?'var(--neon)':'var(--border)';
+  document.getElementById('auto-btn').style.color=autoAdvance?'var(--neon)':'var(--text)';
+  document.getElementById('speed-btn').textContent=autoSpeeds[autoSpeedIdx]+'×';
+}
+document.getElementById('auto-btn').addEventListener('click',function(){autoAdvance=!autoAdvance;autoTimer=0;updateAutoBtn();});
+document.getElementById('speed-btn').addEventListener('click',function(){autoSpeedIdx=(autoSpeedIdx+1)%autoSpeeds.length;autoSpeed=autoSpeeds[autoSpeedIdx];autoTimer=0;updateAutoBtn();});
+
+document.getElementById('btn-reset').addEventListener('click',function(){showGameConfirm('Ricominciare da capo?\nTutti i progressi andranno persi.',function(){clearSave();initGame(false);});});
+document.getElementById('ov-btn').addEventListener('click',function(){clearSave();initGame(false);});
+window.addEventListener('resize',function(){setSize();clampCam();draw();drawMini();});
+window.addEventListener('load',function(){initGame(true);});
+</script>
+<!-- GAME CONFIRM MODAL (mobile-safe, replaces confirm()) -->
+<div id="game-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:400;align-items:center;justify-content:center;">
+  <div style="background:var(--panel);border:2px solid var(--red);padding:20px 18px;max-width:280px;width:88%;text-align:center;box-shadow:0 0 30px rgba(255,50,50,0.2);">
+    <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:var(--red);text-shadow:0 0 8px var(--red);margin-bottom:14px;">⚠ ATTENZIONE</div>
+    <div id="gc-msg" style="font-size:11px;color:var(--text);line-height:1.8;margin-bottom:16px;white-space:pre-line;"></div>
+    <div style="display:flex;gap:10px;">
+      <button id="gc-ok" style="flex:1;font-family:'Press Start 2P',monospace;font-size:7px;padding:12px 4px;cursor:pointer;border:2px solid var(--red);background:#1a0a0a;color:var(--red);">✓ SÌ</button>
+      <button id="gc-cancel" style="flex:1;font-family:'Press Start 2P',monospace;font-size:7px;padding:12px 4px;cursor:pointer;border:2px solid var(--border);background:#111d11;color:var(--text);">✗ NO</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var _gcCallback=null;
+function showGameConfirm(msg,cb){
+  _gcCallback=cb;
+  document.getElementById('gc-msg').textContent=msg;
+  document.getElementById('game-confirm').style.display='flex';
+}
+document.getElementById('gc-ok').addEventListener('click',function(){
+  document.getElementById('game-confirm').style.display='none';
+  if(_gcCallback){_gcCallback();_gcCallback=null;}
+});
+document.getElementById('gc-cancel').addEventListener('click',function(){
+  document.getElementById('game-confirm').style.display='none';
+  _gcCallback=null;
+});
+</script>
+</body>
+</html>
