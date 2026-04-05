@@ -215,6 +215,10 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
           <button class="bld-btn" data-b="galli"><span class="bi">🐎</span><span class="bn">GALLIMIMUS<span class="bc">$11,000</span></span></button>
           <button class="bld-btn" data-b="para"><span class="bi">🦕</span><span class="bn">PARASAURO<span class="bc">$9,500</span></span></button>
           <button class="bld-btn" data-b="stego"><span class="bi">🦕</span><span class="bn">STEGOSAURO<span class="bc">$13,000</span></span></button>
+          <button class="bld-btn" data-b="carno"><span class="bi">🦖</span><span class="bn">CARNOTAURUS<span class="bc">$16,000</span></span></button>
+          <button class="bld-btn" data-b="bary"><span class="bi">🦖</span><span class="bn">BARYONYX<span class="bc">$14,000</span></span></button>
+          <button class="bld-btn" data-b="pachy"><span class="bi">🦕</span><span class="bn">PACHYCEFALO<span class="bc">$10,000</span></span></button>
+          <button class="bld-btn" data-b="compy"><span class="bi">🦎</span><span class="bn">COMPSOGNATHUS<span class="bc">$4,000</span></span></button>
         </div>
         <div class="p-section">
           <div class="p-title">SERVIZI</div>
@@ -404,9 +408,10 @@ var T_EMPTY=0,T_JUNGLE=1,T_CLEAR=2,T_ROAD=3,
     T_WORKSHOP=29,T_JEEP=30,
     T_GALLI=31,T_PARA=32,T_STEGO=33,
     T_RANGER=34,
+    T_CARNO=35,T_BARY=36,T_PACHY=37,T_COMPY=38,
     T_OCEAN=50; // non-buildable ocean border
 
-var DINO_MIN=T_RAPTOR, DINO_MAX=T_STEGO;
+var DINO_MIN=T_RAPTOR, DINO_MAX=T_COMPY;
 
 var BD = {
   demolish: {id:T_EMPTY, cost:0,     lbl:'Demolisci',      icon:'🗑', pw:0,   sec:0,  vis:0,  sat:0,  maint:0,   rp:0, road:false, sz:0},
@@ -443,6 +448,10 @@ var BD = {
   galli:    {id:T_GALLI,   cost:11000, lbl:'Gallimimus',       icon:'🐎', pw:-2,  sec:0,  vis:35, sat:18, maint:190, rp:1, road:true,  sz:3, dino:'🐎', color:'#2a3818', danger:false, herd:true},
   para:     {id:T_PARA,    cost:9500,  lbl:'Parasaurolophus',  icon:'🦕', pw:-2,  sec:0,  vis:28, sat:14, maint:140, rp:0, road:true,  sz:2, dino:'🦕', color:'#1e3020', danger:false},
   stego:    {id:T_STEGO,   cost:13000, lbl:'Stegosauro',       icon:'🦕', pw:-3,  sec:1,  vis:40, sat:16, maint:210, rp:0, road:true,  sz:3, dino:'🦕', color:'#243020', danger:false},
+  carno:    {id:T_CARNO,  cost:16000, lbl:'Carnotaurus',       icon:'🦖', pw:-3,  sec:-3, vis:52, sat:18, maint:320, rp:1, road:true,  sz:2, dino:'🦖', color:'#3a1008', danger:true},
+  bary:     {id:T_BARY,   cost:14000, lbl:'Baryonyx',          icon:'🦖', pw:-3,  sec:-2, vis:45, sat:20, maint:280, rp:2, road:true,  sz:2, dino:'🦖', color:'#1a2a3a', danger:true},
+  pachy:    {id:T_PACHY,  cost:10000, lbl:'Pachycephalosauro', icon:'🦕', pw:-2,  sec:2,  vis:30, sat:14, maint:200, rp:1, road:true,  sz:2, dino:'🦕', color:'#2a2010', danger:false},
+  compy:    {id:T_COMPY,  cost:4000,  lbl:'Compsognathus',     icon:'🦎', pw:-1,  sec:0,  vis:15, sat:12, maint:80,  rp:1, road:true,  sz:1, dino:'🦎', color:'#1a2808', danger:false, herd:true},
 };
 
 var ID2K = {};
@@ -483,6 +492,10 @@ var TOOL_DESC = {
   galli:'Gallimimus. Il gregge iconico del film — i dinosauri si muovono in branco coordinato. Sicuri, generano RP.',
   para:'Parasaurolophus. Erbivoro con cresta sonora. Famoso per il verso nel film. Sicuro e popolare.',
   stego:'Stegosauro. Erbivoro con piastre dorsali. Icona del Mesozoico. Aumenta leggermente la sicurezza percepita.',
+  carno:'Carnotaurus. Carnivoro velocissimo con corna rosse. Altamente pericoloso ma molto attraente.',
+  bary:'Baryonyx. Semi-acquatico, caccia i pesci. Recinto con laghetto, genera RP grazie al suo DNA unico.',
+  pachy:'Pachycephalosaurus. La testata d\'ariete del parco. Erbivoro che aumenta la sicurezza con la sua presenza intimidatoria.',
+  compy:'Compsognathus. Branchetto di piccoli dino veloci. Economici, curiosi, adorati dai bambini. Generano RP.',
 };
 
 var RESEARCH = [
@@ -491,7 +504,7 @@ var RESEARCH = [
   {id:'power2',   name:'Energia Efficiente',   cost:12, done:false, desc:'Centrale produce 20 invece di 15.', apply:function(){BD.power.pw=20;}},
   {id:'solar2',   name:'Pannelli Avanzati',    cost:8,  done:false, desc:'Pannelli producono 10 invece di 6.', apply:function(){BD.solar.pw=10;}},
   {id:'vip',      name:'Tour VIP',             cost:20, done:false, desc:'Hotel e Eliporto raddoppiano i visitatori.', apply:function(){BD.hotel.vis=80;BD.helipad.vis=40;}},
-  {id:'shows',    name:'Spettacoli Dinosauri', cost:18, done:false, desc:'Tutti i recinti +10 visitatori.', apply:function(){var dk=['raptor','trex','brachio','ptero','trice','spino','ankylo','diloph','mosaw'];for(var i=0;i<dk.length;i++)BD[dk[i]].vis+=10;}},
+  {id:'shows',    name:'Spettacoli Dinosauri', cost:18, done:false, desc:'Tutti i recinti +10 visitatori.', apply:function(){var dk=['raptor','trex','brachio','ptero','trice','spino','ankylo','diloph','mosaw','galli','para','stego','carno','bary','pachy','compy'];for(var i=0;i<dk.length;i++)BD[dk[i]].vis+=10;}},
   {id:'food2',    name:'Gastronomia Avanzata', cost:8,  done:false, desc:'Ristoranti +10 vis e +10 soddisf.', apply:function(){BD.restaurant.vis=25;BD.restaurant.sat=30;}},
   {id:'clearing2',name:'Disboscamento Rapido', cost:6,  done:false, desc:'Abbattere costa $150 invece di $300.', apply:function(){BD.clear.cost=150;}},
 ];
@@ -571,7 +584,7 @@ function removeEnclosure(e){
 
 function spawnEnclosureDinos(enc){
   var b=BD[enc.key];if(!b)return;
-  var count=enc.sz===2?2:enc.sz===3?3:1;
+  var count=enc.sz===1?5:enc.sz===2?2:enc.sz===3?3:1; // Compy gets a brood of 5
   enc.dinos=[];
   if(enc.energy===undefined)enc.energy=100;
   for(var i=0;i<count;i++){
@@ -642,12 +655,28 @@ function drawEnclosures(){
     var b=BD[enc.key];if(!b)continue;
     var px=enc.bx*TS,py=enc.by*TS,pw=enc.sz*TS,ph=enc.sz*TS;
     var isMosaw=(enc.key==='mosaw');
+    var isBary=(enc.key==='bary');
     if(isMosaw){
       ctx.fillStyle='#0a2840';ctx.fillRect(px,py,pw,ph);
       ctx.fillStyle='#0e3a5a';ctx.fillRect(px+2,py+2,pw-4,ph-4);
       var wt=Date.now()/1000;
       ctx.fillStyle='rgba(0,120,200,0.2)';
       ctx.fillRect(px+4,py+ph*0.4+Math.sin(wt)*3,pw-8,ph*0.25);
+    } else if(isBary){
+      // Semi-aquatic: muddy banks + pond
+      ctx.fillStyle='#1a2a18';ctx.fillRect(px,py,pw,ph);
+      // Muddy banks
+      ctx.fillStyle='#2a3820';ctx.fillRect(px+2,py+2,pw-4,ph-4);
+      // Central pond
+      var wt2=Date.now()/1000;
+      ctx.fillStyle='#0a2030';ctx.fillRect(px+pw*0.25,py+ph*0.3,pw*0.5,ph*0.4);
+      ctx.fillStyle='rgba(0,100,180,0.3)';
+      ctx.fillRect(px+pw*0.25,py+ph*0.3+Math.sin(wt2*1.5)*2,pw*0.5,ph*0.15);
+      // Reeds around pond
+      ctx.fillStyle='#3a5a18';
+      for(var rr=0;rr<6;rr++){
+        ctx.fillRect(px+pw*0.2+rr*pw*0.1,py+ph*0.28,2,8);
+      }
     } else {
       // Land enclosures — richer terrain per dino type
       var gc=enc.key==='ptero'?'#06101c':
@@ -956,6 +985,93 @@ function drawDinoShape(key,sz){
     ctx.fillRect(-6,6,4,5);ctx.fillRect(-1,6,4,5);ctx.fillRect(3,6,4,5);
     ctx.fillStyle='#2a3810';
     ctx.fillRect(-6,9,4,2);ctx.fillRect(-1,9,4,2);ctx.fillRect(3,9,4,2);
+  } else if(key==='carno'){
+    // Carnotaurus: muscular build, distinctive red horns, short arms, powerful legs
+    ctx.fillStyle='#5a1a08'; ctx.fillRect(-6,-6,14,9);  // body
+    ctx.fillStyle='#7a2a10'; ctx.fillRect(7,-8,7,7);    // head
+    ctx.fillStyle='#3a0a04'; ctx.fillRect(-12,-3,7,4);  // tail
+    // Iconic horns (red)
+    ctx.fillStyle='#dd2200';
+    ctx.fillRect(10,-11,3,5); // horn L
+    ctx.fillRect(13,-10,3,4); // horn R
+    // Eye
+    ctx.fillStyle='#ffff00'; ctx.fillRect(12,-7,2,2);
+    // Tiny vestigial arms
+    ctx.fillStyle='#4a1208'; ctx.fillRect(5,-3,3,3);
+    // Powerful legs
+    ctx.fillStyle='#3a0a04';
+    ctx.fillRect(-3,3,4,7); ctx.fillRect(3,3,4,7);
+    // Claws
+    ctx.fillStyle='#222'; ctx.fillRect(-3,9,2,2); ctx.fillRect(3,9,2,2);
+    // Texture stripes on body
+    ctx.fillStyle='rgba(0,0,0,0.25)';
+    ctx.fillRect(-4,-4,2,7); ctx.fillRect(0,-5,2,8);
+
+  } else if(key==='bary'){
+    // Baryonyx: long crocodile-like snout, semi-aquatic build, fin crest
+    ctx.fillStyle='#2a4050'; ctx.fillRect(-7,-4,16,8);  // body
+    ctx.fillStyle='#1a3040'; ctx.fillRect(8,-5,10,6);   // long snout
+    ctx.fillStyle='#0a2030'; ctx.fillRect(-14,-1,8,4);  // tail
+    // Dorsal fin crest
+    ctx.fillStyle='#3a6070';
+    ctx.fillRect(-4,-10,3,7); ctx.fillRect(0,-8,3,5); ctx.fillRect(4,-6,3,4);
+    // Eye
+    ctx.fillStyle='#ffee00'; ctx.fillRect(13,-4,2,2);
+    // Teeth on snout
+    ctx.fillStyle='#eeeecc';
+    ctx.fillRect(9,-3,2,2); ctx.fillRect(12,-3,2,2); ctx.fillRect(15,-3,2,2);
+    // 4 short legs
+    ctx.fillStyle='#1a3040';
+    ctx.fillRect(-5,4,3,5); ctx.fillRect(-1,4,3,5); ctx.fillRect(3,4,3,5);
+    // Water ripple beneath (semi-aquatic)
+    ctx.strokeStyle='rgba(0,160,220,0.4)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(0,10,10,0,Math.PI); ctx.stroke(); ctx.lineWidth=1;
+    // Claw on thumb (Baryonyx's signature)
+    ctx.fillStyle='#aaccdd'; ctx.fillRect(-6,7,2,4);
+
+  } else if(key==='pachy'){
+    // Pachycephalosaurus: domed skull, bipedal, stocky build
+    ctx.fillStyle='#5a4818'; ctx.fillRect(-5,-4,11,8);  // body
+    ctx.fillStyle='#7a6428'; ctx.fillRect(5,-6,7,6);    // neck+head
+    ctx.fillStyle='#3a2808'; ctx.fillRect(-10,-1,6,4);  // tail
+    // Iconic thick domed skull
+    ctx.fillStyle='#c8a030';
+    ctx.beginPath(); ctx.arc(10,-5,6,0,Math.PI*2); ctx.fill();
+    // Bony bumps on dome
+    ctx.fillStyle='#e0b840';
+    ctx.fillRect(7,-9,3,3); ctx.fillRect(11,-10,3,3); ctx.fillRect(14,-8,3,3);
+    // Eye
+    ctx.fillStyle='#ff4400'; ctx.fillRect(11,-6,2,2);
+    // Bipedal — two strong legs
+    ctx.fillStyle='#3a2808';
+    ctx.fillRect(-3,4,4,7); ctx.fillRect(3,4,4,7);
+    // Short arms
+    ctx.fillStyle='#4a3818'; ctx.fillRect(4,-1,3,4);
+    // Textured back
+    ctx.fillStyle='rgba(200,160,40,0.2)';
+    ctx.fillRect(-3,-2,3,6); ctx.fillRect(1,-3,3,7);
+
+  } else if(key==='compy'){
+    // Compsognathus: tiny, lightweight, bird-like — drawn small, multiple per enclosure
+    var cs = sz===1 ? 0.55 : 0.7; // extra small
+    ctx.save(); ctx.scale(cs, cs);
+    ctx.fillStyle='#3a5010'; ctx.fillRect(-3,-4,8,6);   // body
+    ctx.fillStyle='#4a6818'; ctx.fillRect(4,-5,5,4);    // head
+    ctx.fillStyle='#2a3808'; ctx.fillRect(-8,-1,6,3);   // tail (long)
+    // Eye
+    ctx.fillStyle='#ffff00'; ctx.fillRect(7,-4,2,2);
+    // Long neck
+    ctx.fillStyle='#3a5818'; ctx.fillRect(3,-7,3,4);
+    // Bird-like legs (long and thin)
+    ctx.fillStyle='#2a3808';
+    ctx.fillRect(-1,2,2,6); ctx.fillRect(2,2,2,6);
+    // Tiny claws
+    ctx.fillStyle='#1a2004';
+    ctx.fillRect(-2,7,2,2); ctx.fillRect(2,7,2,2);
+    // Small arms
+    ctx.fillStyle='#3a5010'; ctx.fillRect(3,-2,2,3);
+    ctx.restore();
+
   } else {
     ctx.fillStyle='#4a6820';ctx.fillRect(-5,-5,10,8);ctx.fillRect(5,-7,6,6);ctx.fillRect(-10,-2,6,3);
   }
@@ -1894,8 +2010,8 @@ function resetBuilds(){
   BD.fence.sec=3;BD.power.pw=15;BD.solar.pw=6;BD.clear.cost=300;
   BD.raptor.sec=-2;BD.trex.sec=-3;BD.ptero.sec=-1;BD.spino.sec=-4;
   BD.hotel.vis=40;BD.helipad.vis=20;
-  var dk=['raptor','trex','brachio','ptero','trice','spino','ankylo','diloph','mosaw','galli','para','stego'];
-  var dv=[25,60,20,35,28,75,30,32,65,35,28,40];
+  var dk=['raptor','trex','brachio','ptero','trice','spino','ankylo','diloph','mosaw','galli','para','stego','carno','bary','pachy','compy'];
+  var dv=[25,60,20,35,28,75,30,32,65,35,28,40,52,45,30,15];
   for(var i=0;i<dk.length;i++)BD[dk[i]].vis=dv[i];
   BD.restaurant.vis=10;BD.restaurant.sat=20;
   BD.hotel.vis=30;
