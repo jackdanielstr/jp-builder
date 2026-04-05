@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta charset="UTF-8">
 <title>JP Builder</title>
 
@@ -23,10 +24,28 @@
   --blue:#00cfff;--dim:#2e5a2e;--text:#c0e0c0;--purple:#bb44ff;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
+:root { --ui-scale:1; }
+
+#panel {
+  font-size: calc(12px * var(--ui-scale));
+}
+
+button {
+  font-size: calc(12px * var(--ui-scale));
+}
 <script>
 if (!location.search.includes('v=')) {
   location.replace(location.pathname + '?v=' + Date.now());
 }
+
+function updateUIScale() {
+  const baseWidth = 390;
+  const scale = window.innerWidth / baseWidth;
+  document.documentElement.style.setProperty('--ui-scale', scale);
+}
+
+window.addEventListener('resize', updateUIScale);
+updateUIScale();
 </script>
 body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none;}
 /* iOS Safari 100vh fix */
