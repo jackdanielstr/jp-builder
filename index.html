@@ -143,6 +143,23 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
 .pause-menu-btn{font-family:'Press Start 2P',monospace;font-size:8px;background:#0f1c0f;border:2px solid var(--neon);color:var(--neon);padding:12px 32px;cursor:pointer;width:220px;transition:background .1s,color .1s;}
 .pause-menu-btn:hover{background:var(--neon);color:var(--bg);}
 .pause-menu-btn.danger{border-color:var(--red);color:var(--red);}
+/* STAFF CARDS */
+.staff-card{background:#0a160a;border:1px solid var(--border);border-radius:3px;padding:6px;margin-bottom:5px;transition:border-color .15s;}
+.staff-card.hired{border-color:var(--neon);}
+.staff-card.locked{opacity:.45;}
+.staff-card-top{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.staff-emoji{font-size:18px;flex-shrink:0;}
+.staff-name{font-family:'Press Start 2P',monospace;font-size:5.5px;color:var(--neon);line-height:1.5;}
+.staff-role{font-size:8px;color:var(--amber);}
+.staff-bonus{font-size:8px;color:var(--text);line-height:1.5;margin-bottom:4px;}
+.staff-footer{display:flex;justify-content:space-between;align-items:center;}
+.staff-salary{font-size:8px;color:var(--red);}
+.staff-btn{font-family:'Share Tech Mono',monospace;font-size:8px;padding:3px 7px;cursor:pointer;border-radius:2px;border:1px solid;}
+.staff-btn.hire{background:#0f2a0f;border-color:var(--neon);color:var(--neon);}
+.staff-btn.hire:hover{background:var(--neon);color:var(--bg);}
+.staff-btn.fire{background:#1a0a0a;border-color:var(--red);color:var(--red);}
+.staff-btn.fire:hover{background:var(--red);color:var(--bg);}
+.staff-lock{font-size:8px;color:var(--dim);}
 .pause-menu-btn.danger:hover{background:var(--red);color:var(--bg);}
 
 /* CONFIRM MODAL */
@@ -169,6 +186,7 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
   <div class="res"><span class="lbl">⚡</span><span class="val" id="v-pow">0</span><span class="lbl">/</span><span id="v-pneed" style="color:var(--amber)">0</span></div>
   <div class="res"><span class="lbl">🔒</span><span class="val" id="v-sec">0</span></div>
   <div class="res"><span class="lbl">🔬</span><span class="val" id="v-rp" style="color:var(--purple)">0</span></div>
+  <div class="res" title="Reputazione parco"><span id="v-stars" style="font-size:12px;letter-spacing:1px;color:#666;">★☆☆☆</span></div>
   <span id="day-info">G.1</span>
   <span id="weather-info" style="font-size:14px;margin-left:4px;" title="Meteo">☀️</span>
   <button id="menu-btn" style="margin-left:auto;background:#0f2a0f;border:1px solid var(--neon);color:var(--neon);font-family:'Share Tech Mono',monospace;font-size:11px;padding:4px 10px;cursor:pointer;border-radius:2px;">⏸ MENU</button>
@@ -185,6 +203,7 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
       <button class="tab" data-tab="research">🔬</button>
       <button class="tab" data-tab="missions">🎯</button>
       <button class="tab" data-tab="stats">📊</button>
+      <button class="tab" data-tab="staff">👥</button>
     </div>
     <div id="panel-body">
       <div id="tab-build">
@@ -270,6 +289,19 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
           </div>
         </div>
 
+        <!-- REPUTAZIONE -->
+        <div class="stat-card">
+          <div class="stat-card-title">⭐ REPUTAZIONE PARCO</div>
+          <div style="text-align:center;font-size:22px;letter-spacing:4px;margin:4px 0 2px;" id="sv-stars-big">☆☆☆☆☆</div>
+          <div style="text-align:center;font-size:8px;color:var(--dim);margin-bottom:5px;" id="sv-stars-label">Nessuna valutazione</div>
+          <div class="stat-bar-track"><div class="stat-bar-fill" id="bar-stars" style="width:0%;background:#ffb300;"></div></div>
+          <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:8px;">
+            <span style="color:var(--dim);">Punteggio</span>
+            <span id="sv-star-score" style="color:#ffb300;font-weight:bold;">0 / 100</span>
+          </div>
+          <div style="margin-top:5px;font-size:8px;color:var(--dim);line-height:1.7;" id="sv-stars-hint"></div>
+        </div>
+
         <!-- FINANZE -->
         <div class="stat-card">
           <div class="stat-card-title">💰 FINANZE GIORNALIERE</div>
@@ -346,6 +378,20 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
         </div>
 
       </div>
+
+      <!-- STAFF TAB -->
+      <div id="tab-staff" style="display:none">
+        <div class="p-section">
+          <div class="p-title">👥 PERSONALE</div>
+          <div style="font-size:8px;color:var(--dim);margin-bottom:6px;line-height:1.6;">Assumi personaggi iconici. Ogni ruolo richiede l'edificio corrispondente.</div>
+          <div id="staff-list"></div>
+          <div style="margin-top:6px;padding:5px;background:#0a160a;border:1px solid var(--border);border-radius:2px;">
+            <div style="font-size:8px;color:var(--dim);">Stipendi totali/g</div>
+            <div id="sv-salary" style="font-size:11px;color:var(--red);font-weight:bold;">-$0</div>
+          </div>
+        </div>
+      </div>
+
     </div>
     <div id="info-card">
       <div id="ic-inner" style="display:none">
@@ -412,6 +458,174 @@ var T_EMPTY=0,T_JUNGLE=1,T_CLEAR=2,T_ROAD=3,
     T_OCEAN=50; // non-buildable ocean border
 
 var DINO_MIN=T_RAPTOR, DINO_MAX=T_COMPY;
+
+// ── STAFF SYSTEM ──
+// unlockBld: quale tile deve esistere in griglia per sbloccare il personaggio
+// bonus: descrizione testuale del bonus
+// apply/unapply: funzioni che applicano/rimuovono il bonus su G
+var STAFF = [
+  {
+    id:'hammond',  emoji:'👴', name:'John Hammond',   role:'Fondatore & CEO',
+    salary:800,
+    unlockBld: null, // sempre disponibile
+    bonus:'+15% visitatori. La sua visione attira turisti da tutto il mondo.',
+    apply:   function(){ G.staffHammond=true; },
+    unapply: function(){ G.staffHammond=false; },
+    hired: false
+  },
+  {
+    id:'grant',    emoji:'🦴', name:'Dr. Alan Grant',  role:'Paleontologo',
+    salary:600,
+    unlockBld: T_LAB,
+    bonus:'+3 RP/giorno. Le sue pubblicazioni aumentano la credibilità scientifica.',
+    apply:   function(){ G.staffGrant=true; },
+    unapply: function(){ G.staffGrant=false; },
+    hired: false
+  },
+  {
+    id:'ellie',    emoji:'🌿', name:'Dr. Ellie Sattler', role:'Paleobotanica',
+    salary:500,
+    unlockBld: T_PARK,
+    bonus:'+8 soddisfazione. Cura il verde e migliora il benessere dei dino erbivori.',
+    apply:   function(){ G.staffEllie=true; },
+    unapply: function(){ G.staffEllie=false; },
+    hired: false
+  },
+  {
+    id:'malcolm',  emoji:'🕶', name:'Dr. Ian Malcolm', role:'Matematico del Caos',
+    salary:700,
+    unlockBld: T_VISITOR,
+    bonus:'-50% penalità visitatori da eventi caotici. Prevede i guasti.',
+    apply:   function(){ G.staffMalcolm=true; },
+    unapply: function(){ G.staffMalcolm=false; },
+    hired: false
+  },
+  {
+    id:'wu',       emoji:'🧬', name:'Dr. Henry Wu',    role:'Genetista Capo',
+    salary:900,
+    unlockBld: T_LAB,
+    bonus:'+5 RP/giorno. Velocizza la ricerca genetica. Sblocca nuovi dino prima.',
+    apply:   function(){ G.staffWu=true; },
+    unapply: function(){ G.staffWu=false; },
+    hired: false
+  },
+  {
+    id:'muldoon',  emoji:'🪖', name:'Robert Muldoon',  role:'Cacciatore & Ranger',
+    salary:550,
+    unlockBld: T_RANGER,
+    bonus:'+4 sicurezza. I ranger catturano i dino 2× più veloce.',
+    apply:   function(){ G.staffMuldoon=true; },
+    unapply: function(){ G.staffMuldoon=false; },
+    hired: false
+  },
+  {
+    id:'nedry',    emoji:'💾', name:'Dennis Nedry',    role:'Programmatore',
+    salary:400,
+    unlockBld: T_WORKSHOP,
+    bonus:'Officine riparano +10% extra. Ma attenzione: 5% di probabilità di sabotaggio al giorno.',
+    apply:   function(){ G.staffNedry=true; },
+    unapply: function(){ G.staffNedry=false; },
+    hired: false
+  },
+  {
+    id:'harding',  emoji:'💉', name:'Dr. Gerry Harding', role:'Veterinario',
+    salary:500,
+    unlockBld: T_INFIRMARY,
+    bonus:'Cura le malattie dei dino 3× più veloce. Riduce il decadimento energia dei recinti.',
+    apply:   function(){ G.staffHarding=true; },
+    unapply: function(){ G.staffHarding=false; },
+    hired: false
+  },
+];
+
+function staffUnlocked(s){
+  if(!s.unlockBld) return true;
+  // Check grid for single-tile buildings
+  for(var j=0;j<MAP_H;j++) for(var i=0;i<MAP_W;i++) if(grid[j][i]===s.unlockBld) return true;
+  // Check multi-tile buildings array
+  for(var b=0;b<buildings.length;b++) if(BD[buildings[b].key]&&BD[buildings[b].key].id===s.unlockBld) return true;
+  return false;
+}
+
+function staffSalaryTotal(){
+  var tot=0;
+  for(var i=0;i<STAFF.length;i++) if(STAFF[i].hired) tot+=STAFF[i].salary;
+  return tot;
+}
+
+function hireStaff(id){
+  for(var i=0;i<STAFF.length;i++){
+    if(STAFF[i].id===id){
+      if(!staffUnlocked(STAFF[i])){log('⚠ Costruisci prima l\'edificio richiesto!','w');return;}
+      if(STAFF[i].hired){log(STAFF[i].name+' è già assunto.','w');return;}
+      STAFF[i].hired=true;
+      STAFF[i].apply();
+      log('👥 Assunto: '+STAFF[i].name+' ('+STAFF[i].role+') -$'+STAFF[i].salary+'/g','g');
+      snd('build');
+      recalc();updateUI();buildStaffUI();
+      return;
+    }
+  }
+}
+
+function fireStaff(id){
+  for(var i=0;i<STAFF.length;i++){
+    if(STAFF[i].id===id){
+      if(!STAFF[i].hired) return;
+      STAFF[i].hired=false;
+      STAFF[i].unapply();
+      log('👋 Licenziato: '+STAFF[i].name,'w');
+      recalc();updateUI();buildStaffUI();
+      return;
+    }
+  }
+}
+
+function buildStaffUI(){
+  var el=document.getElementById('staff-list');
+  if(!el) return;
+  el.innerHTML='';
+  var totalSal=staffSalaryTotal();
+  var sv=document.getElementById('sv-salary');
+  if(sv) sv.textContent='-$'+totalSal.toLocaleString()+'/g';
+
+  for(var i=0;i<STAFF.length;i++){
+    var s=STAFF[i];
+    var unlocked=staffUnlocked(s);
+    var card=document.createElement('div');
+    card.className='staff-card'+(s.hired?' hired':'')+(unlocked?'':' locked');
+
+    var unlockHint='';
+    if(!unlocked && s.unlockBld){
+      // Find building name
+      var bname='';
+      for(var bk in BD){ if(BD[bk].id===s.unlockBld){bname=BD[bk].lbl;break;} }
+      unlockHint='<div class="staff-lock">🔒 Richiede: '+bname+'</div>';
+    }
+
+    var btnHtml='';
+    if(unlocked){
+      if(s.hired){
+        btnHtml='<button class="staff-btn fire" onclick="fireStaff(\''+s.id+'\')">Licenzia</button>';
+      } else {
+        btnHtml='<button class="staff-btn hire" onclick="hireStaff(\''+s.id+'\')">Assumi</button>';
+      }
+    }
+
+    card.innerHTML=
+      '<div class="staff-card-top">'
+        +'<span class="staff-emoji">'+s.emoji+'</span>'
+        +'<div><div class="staff-name">'+s.name+'</div><div class="staff-role">'+s.role+'</div></div>'
+      +'</div>'
+      +'<div class="staff-bonus">'+s.bonus+'</div>'
+      +'<div class="staff-footer">'
+        +'<span class="staff-salary">-$'+s.salary+'/g</span>'
+        +(unlockHint||btnHtml)
+      +'</div>';
+
+    el.appendChild(card);
+  }
+}
 
 var BD = {
   demolish: {id:T_EMPTY, cost:0,     lbl:'Demolisci',      icon:'🗑', pw:0,   sec:0,  vis:0,  sat:0,  maint:0,   rp:0, road:false, sz:0},
@@ -500,28 +714,47 @@ var TOOL_DESC = {
 
 var RESEARCH = [
   {id:'fences2',  name:'Recinti Rinforzati',   cost:10, done:false, desc:'+5 sicurezza per recinto (era +3).', apply:function(){BD.fence.sec=5;}},
-  {id:'training', name:'Addestramento Dino',   cost:15, done:false, desc:'I carnivori dimezzano il malus sicurezza.', apply:function(){BD.raptor.sec=-1;BD.trex.sec=-2;BD.ptero.sec=0;BD.spino.sec=-2;}},
+  {id:'training', name:'Addestramento Dino',   cost:15, done:false, desc:'I carnivori dimezzano il malus sicurezza.', apply:function(){BD.raptor.sec=-1;BD.trex.sec=-2;BD.ptero.sec=0;BD.spino.sec=-2;BD.carno.sec=-1;BD.bary.sec=-1;}},
   {id:'power2',   name:'Energia Efficiente',   cost:12, done:false, desc:'Centrale produce 20 invece di 15.', apply:function(){BD.power.pw=20;}},
   {id:'solar2',   name:'Pannelli Avanzati',    cost:8,  done:false, desc:'Pannelli producono 10 invece di 6.', apply:function(){BD.solar.pw=10;}},
   {id:'vip',      name:'Tour VIP',             cost:20, done:false, desc:'Hotel e Eliporto raddoppiano i visitatori.', apply:function(){BD.hotel.vis=80;BD.helipad.vis=40;}},
   {id:'shows',    name:'Spettacoli Dinosauri', cost:18, done:false, desc:'Tutti i recinti +10 visitatori.', apply:function(){var dk=['raptor','trex','brachio','ptero','trice','spino','ankylo','diloph','mosaw','galli','para','stego','carno','bary','pachy','compy'];for(var i=0;i<dk.length;i++)BD[dk[i]].vis+=10;}},
   {id:'food2',    name:'Gastronomia Avanzata', cost:8,  done:false, desc:'Ristoranti +10 vis e +10 soddisf.', apply:function(){BD.restaurant.vis=25;BD.restaurant.sat=30;}},
   {id:'clearing2',name:'Disboscamento Rapido', cost:6,  done:false, desc:'Abbattere costa $150 invece di $300.', apply:function(){BD.clear.cost=150;}},
+  // ── Nuove ricerche avanzate ──
+  {id:'dna_hybrid',  name:'DNA Ibrido',           cost:30, done:false, desc:'Sblocca il bonus reputazione: ogni recinto dà +1 stella potenziale. Aumenta l\'attrattiva di tutti i dino del 20%.', apply:function(){G.dnaHybrid=true;var dk=['raptor','trex','brachio','ptero','trice','spino','ankylo','diloph','mosaw','galli','para','stego','carno','bary','pachy','compy'];for(var i=0;i<dk.length;i++)BD[dk[i]].vis=Math.floor(BD[dk[i]].vis*1.2);}},
+  {id:'luxury',      name:'Turismo di Lusso',      cost:25, done:false, desc:'Centro Visitatori e Hotel: +50% visitatori. Reputazione minima richiesta: ★★★.', apply:function(){BD.visitor.vis=Math.floor(BD.visitor.vis*1.5);BD.hotel.vis=Math.floor(BD.hotel.vis*1.5);}},
+  {id:'biocontain',  name:'Contenimento Bio',      cost:22, done:false, desc:'Recinti carnivori non causano più malus sicurezza se energia >60%.', apply:function(){G.bioContain=true;}},
+  {id:'reputation',  name:'Marketing Globale',     cost:20, done:false, desc:'Sblocca il livello ★★★★★. Ogni stella vale il doppio sui visitatori.', apply:function(){G.marketingGlobal=true;}},
+  {id:'workshops2',  name:'Officine Robotizzate',  cost:15, done:false, desc:'Officine riparano +40% al giorno invece di +25%.', apply:function(){BD.workshop.repairPerDay=40;}},
+  {id:'nightsec',    name:'Sorveglianza Notturna', cost:18, done:false, desc:'Torri di guardia e Ranger Station raddoppiano la sicurezza.', apply:function(){BD.watchtower.sec=10;BD.ranger.sec=8;}},
 ];
 
 var MISSIONS = [
-  {name:'Primo Dinosauro',  desc:'Costruisci il primo recinto.',        reward:3000,  rp:0, done:false, check:function(){return G.enc>=1;}},
-  {name:'Accendi le Luci',  desc:'Genera almeno 20 unità di energia.',  reward:2000,  rp:2, done:false, check:function(){return G.pow>=20;}},
-  {name:'Parco Sicuro',     desc:'Raggiungi sicurezza ≥10.',            reward:5000,  rp:3, done:false, check:function(){return G.sec>=10;}},
-  {name:'100 Visitatori',   desc:'Raggiungi 100 visitatori/giorno.',    reward:4000,  rp:2, done:false, check:function(){return G.vis>=100;}},
-  {name:'300 Visitatori',   desc:'Raggiungi 300 visitatori/giorno.',    reward:8000,  rp:5, done:false, check:function(){return G.vis>=300;}},
-  {name:'600 Visitatori',   desc:'Raggiungi 600 visitatori/giorno.',    reward:12000, rp:8, done:false, check:function(){return G.vis>=600;}},
-  {name:'Zoo Preistorico',  desc:'Costruisci 5 recinti diversi.',       reward:6000,  rp:5, done:false, check:function(){return G.enc>=5;}},
-  {name:'Il Re del Parco',  desc:'Costruisci il T-Rex Paddock.',        reward:6000,  rp:4, done:false, check:function(){return gridHas(T_TREX);}},
-  {name:'Mondo Acquatico',  desc:'Costruisci la Vasca del Mosasauro.',  reward:8000,  rp:6, done:false, check:function(){return gridHas(T_MOSAW);}},
-  {name:'Scienziato',       desc:'Completa almeno 3 ricerche.',         reward:5000,  rp:5, done:false, check:function(){return resDone()>=3;}},
-  {name:'Miliardario',      desc:'Accumula $100,000.',                  reward:3000,  rp:3, done:false, check:function(){return G.money>=100000;}},
-  {name:'Sopravvissuto',    desc:'Arriva al giorno 20.',                reward:5000,  rp:0, done:false, check:function(){return G.day>=20;}},
+  {name:'Primo Dinosauro',    desc:'Costruisci il primo recinto.',              reward:3000,  rp:0,  done:false, check:function(){return G.enc>=1;}},
+  {name:'Accendi le Luci',    desc:'Genera almeno 20 unità di energia.',        reward:2000,  rp:2,  done:false, check:function(){return G.pow>=20;}},
+  {name:'Parco Sicuro',       desc:'Raggiungi sicurezza ≥10.',                  reward:5000,  rp:3,  done:false, check:function(){return G.sec>=10;}},
+  {name:'100 Visitatori',     desc:'Raggiungi 100 visitatori/giorno.',          reward:4000,  rp:2,  done:false, check:function(){return G.vis>=100;}},
+  {name:'300 Visitatori',     desc:'Raggiungi 300 visitatori/giorno.',          reward:8000,  rp:5,  done:false, check:function(){return G.vis>=300;}},
+  {name:'600 Visitatori',     desc:'Raggiungi 600 visitatori/giorno.',          reward:12000, rp:8,  done:false, check:function(){return G.vis>=600;}},
+  {name:'Zoo Preistorico',    desc:'Costruisci 5 recinti diversi.',             reward:6000,  rp:5,  done:false, check:function(){return G.enc>=5;}},
+  {name:'Il Re del Parco',    desc:'Costruisci il T-Rex Paddock.',              reward:6000,  rp:4,  done:false, check:function(){return gridHas(T_TREX);}},
+  {name:'Mondo Acquatico',    desc:'Costruisci la Vasca del Mosasauro.',        reward:8000,  rp:6,  done:false, check:function(){return gridHas(T_MOSAW);}},
+  {name:'Scienziato',         desc:'Completa almeno 3 ricerche.',               reward:5000,  rp:5,  done:false, check:function(){return resDone()>=3;}},
+  {name:'Miliardario',        desc:'Accumula $100,000.',                        reward:3000,  rp:3,  done:false, check:function(){return G.money>=100000;}},
+  {name:'Sopravvissuto',      desc:'Arriva al giorno 20.',                      reward:5000,  rp:0,  done:false, check:function(){return G.day>=20;}},
+  // ── Nuove missioni ──
+  {name:'Il Predatore Rosso', desc:'Costruisci il recinto del Carnotaurus.',    reward:8000,  rp:5,  done:false, check:function(){return gridHas(T_CARNO);}},
+  {name:'Pescatore Antico',   desc:'Costruisci il recinto del Baryonyx.',       reward:7000,  rp:6,  done:false, check:function(){return gridHas(T_BARY);}},
+  {name:'Testa d\'Ariete',    desc:'Costruisci il Pachycephalosaurus.',         reward:6000,  rp:4,  done:false, check:function(){return gridHas(T_PACHY);}},
+  {name:'Branco di Compy',    desc:'Costruisci il recinto dei Compsognathus.',  reward:4000,  rp:3,  done:false, check:function(){return gridHas(T_COMPY);}},
+  {name:'Collezione Completa',desc:'Costruisci almeno 10 recinti diversi.',     reward:20000, rp:10, done:false, check:function(){return G.enc>=10;}},
+  {name:'★★ Due Stelle',      desc:'Raggiungi reputazione ★★.',               reward:10000, rp:5,  done:false, check:function(){return (G.stars||0)>=2;}},
+  {name:'★★★ Tre Stelle',     desc:'Raggiungi reputazione ★★★.',              reward:18000, rp:8,  done:false, check:function(){return (G.stars||0)>=3;}},
+  {name:'★★★★ Quattro Stelle',desc:'Raggiungi reputazione ★★★★.',             reward:30000, rp:12, done:false, check:function(){return (G.stars||0)>=4;}},
+  {name:'Scienziato Esperto', desc:'Completa almeno 8 ricerche.',               reward:15000, rp:10, done:false, check:function(){return resDone()>=8;}},
+  {name:'Nessuna Vittima',    desc:'Sopravvivi 30 giorni senza vittime.',       reward:12000, rp:8,  done:false, check:function(){return G.day>=30&&(G.victims||0)===0;}},
+  {name:'Parco Ricco',        desc:'Accumula $500,000.',                        reward:10000, rp:6,  done:false, check:function(){return G.money>=500000;}},
 ];
 
 function gridHas(tid){for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++)if(grid[j][i]===tid)return true;return false;}
@@ -1416,6 +1649,7 @@ function rangerCatchDinos(){
   if(stations.length===0)return;
   var range=BD.ranger.catchRange||10;
   var perDay=BD.ranger.catchPerDay||2;
+  if(G.staffMuldoon) perDay=perDay*2; // Muldoon: 2× catch speed
   // Each station catches up to perDay dinos if within range
   for(var si=0;si<stations.length;si++){
     var st=stations[si];
@@ -1716,6 +1950,7 @@ function processDiseases(){
       var hasLab=curers.filter(function(c){return c.key==='lab';}).length>0;
       // Lab cures 1 day/turn, infirmary cures 0.5 day/turn (takes 2 turns)
       var cureRate=hasLab?1:0.5;
+      if(G.staffHarding) cureRate=cureRate*3; // Harding: 3× cure speed
       enc.diseaseDaysFrac=(enc.diseaseDaysFrac||0)+cureRate;
       if(enc.diseaseDaysFrac>=1){
         enc.diseaseDays-=Math.floor(enc.diseaseDaysFrac);
@@ -1795,6 +2030,7 @@ function workshopsInRangeXY(cx,cy){
 
 function autoRepairBuildings(){
   var repairPerDay=BD.workshop.repairPerDay||20;
+  if(G.staffNedry) repairPerDay=Math.floor(repairPerDay*1.10); // Nedry +10%
   var repairCost=BD.workshop.repairCost||500;
   // Repair multi-tile buildings
   for(var bi=0;bi<buildings.length;bi++){
@@ -1979,7 +2215,8 @@ function save(){
   try{
     var encData=enclosures.map(function(e){return{key:e.key,bx:e.bx,by:e.by,sz:e.sz,energy:e.energy!==undefined?e.energy:100};});
     var bldData=buildings.map(function(b){return{key:b.key,bx:b.bx,by:b.by,bw:b.bw,bh:b.bh,energy:b.energy!==undefined?b.energy:100};});
-    localStorage.setItem('jpb2',JSON.stringify({G:G,grid:grid,vh:visHistory,ih:incHistory,res:RESEARCH.map(function(r){return r.done;}),mis:MISSIONS.map(function(m){return m.done;}),enc:encData,bld:bldData,sbe:singleBldEnergy}));
+    var staffData=STAFF.map(function(s){return s.hired;});
+    localStorage.setItem('jpb2',JSON.stringify({G:G,grid:grid,vh:visHistory,ih:incHistory,res:RESEARCH.map(function(r){return r.done;}),mis:MISSIONS.map(function(m){return m.done;}),enc:encData,bld:bldData,sbe:singleBldEnergy,stf:staffData}));
   }catch(e){}
 }
 function load(){
@@ -2001,6 +2238,8 @@ function load(){
       buildings.push({key:bd.key,bx:bd.bx,by:bd.by,bw:bd.bw,bh:bd.bh,energy:bd.energy!==undefined?bd.energy:100});
     }
     singleBldEnergy=s.sbe||{};
+    // Restore staff
+    if(s.stf){for(var si=0;si<STAFF.length&&si<s.stf.length;si++){STAFF[si].hired=s.stf[si];if(STAFF[si].hired)STAFF[si].apply();}}
     return true;
   }catch(e){return false;}
 }
@@ -2023,7 +2262,9 @@ function initGame(tryLoad){
   resetBuilds();
   var loaded=tryLoad&&load();
   if(!loaded){
-    G={money:75000,day:1,vis:0,pow:0,powNeed:0,sec:0,sat:100,inc:0,costs:0,maint:0,bld:0,enc:0,rp:0,rpd:0,alive:true,victims:0};
+    G={money:75000,day:1,vis:0,pow:0,powNeed:0,sec:0,sat:100,inc:0,costs:0,maint:0,bld:0,enc:0,rp:0,rpd:0,alive:true,victims:0,stars:1,starScore:0,dnaHybrid:false,bioContain:false,marketingGlobal:false,staffHammond:false,staffGrant:false,staffEllie:false,staffMalcolm:false,staffWu:false,staffMuldoon:false,staffNedry:false,staffHarding:false};
+    // Reset all staff
+    for(var si=0;si<STAFF.length;si++){STAFF[si].hired=false;}
     visHistory=[];incHistory=[];grid=[];
     // ── ISLAND SHAPE: elliptical Isla Nublar with ocean border ──
     var cx=MAP_W/2, cy=MAP_H/2;
@@ -2079,11 +2320,66 @@ function initGame(tryLoad){
   if(rafId)cancelAnimationFrame(rafId);
   rafId=requestAnimationFrame(animLoop);
   setSize();clampCam();recalc();draw();drawMini();updateUI();
-  buildResearchUI();buildMissionsUI();updateAutoBtn();
+  buildResearchUI();buildMissionsUI();buildStaffUI();updateAutoBtn();
   document.getElementById('log').innerHTML='';
   document.getElementById('overlay').classList.remove('show');
   if(loaded){log('✅ Partita caricata — Giorno '+G.day,'g');}
   else{log('Isla Nublar è tua! Obiettivo: 1000 visitatori/giorno.','i');log('💡 Abbatti 🪓 la giungla, poi costruisci strade ed edifici.','w');}
+}
+
+// ── REPUTAZIONE A STELLE ──
+// Punteggio 0-100 → stelle 1-5
+// Componenti: visitatori (40%), sicurezza (25%), soddisfazione (20%), zero vittime (10%), ricerche (5%)
+function calcStars(){
+  var score = 0;
+
+  // Visitatori: 0→0, 200→20, 500→30, 800→38, 1000→40
+  var visPts = Math.min(40, Math.floor(G.vis / 25));
+  score += visPts;
+
+  // Sicurezza: <0→0, 0-5→5, 5-15→15, ≥15→25
+  var secPts = G.sec < 0 ? 0 : G.sec < 5 ? Math.floor(G.sec) : G.sec < 15 ? 10 + Math.floor((G.sec-5)/2) : 20;
+  score += Math.min(25, secPts);
+
+  // Soddisfazione: 0-100 → 0-20
+  score += Math.floor((G.sat / 100) * 20);
+
+  // Zero vittime bonus
+  if((G.victims||0) === 0 && G.day > 5) score += 10;
+  else if((G.victims||0) <= 3) score += 5;
+
+  // Ricerche completate: ogni ricerca vale 1pt (max 5)
+  score += Math.min(5, resDone());
+
+  // DNA Hybrid bonus
+  if(G.dnaHybrid) score += 3;
+
+  // Mappa score → stelle
+  var maxStars = G.marketingGlobal ? 5 : 4;
+  var stars;
+  if(score < 15)      stars = 1;
+  else if(score < 30) stars = 2;
+  else if(score < 50) stars = 3;
+  else if(score < 70) stars = 4;
+  else                stars = 5;
+
+  G.stars = Math.min(stars, maxStars);
+  G.starScore = score;
+}
+
+function renderStars(n, max){
+  max = max || 5;
+  var s = '';
+  for(var i=1;i<=max;i++) s += i<=n ? '★' : '☆';
+  return s;
+}
+
+function starsColor(n){
+  if(n<=1) return '#666';
+  if(n===2) return '#cc8800';
+  if(n===3) return '#ffb300';
+  if(n===4) return '#ffdd00';
+  return '#ffe066';
 }
 
 function recalc(){
@@ -2111,7 +2407,10 @@ function recalc(){
     var e=enclosures[ei],bd2=BD[e.key];if(!bd2)continue;
     bld++;enc++;
     if(bd2.pw>0)pw+=bd2.pw;else pn+=(-bd2.pw);
-    sec+=bd2.sec;vis+=bd2.vis;sat+=bd2.sat;maint+=bd2.maint;rpd+=bd2.rp;
+    // bioContain: carnivori con energia >60% non danno malus sicurezza
+    var secVal=bd2.sec;
+    if(G.bioContain&&bd2.danger&&secVal<0&&(e.energy||100)>60) secVal=0;
+    sec+=secVal;vis+=bd2.vis;sat+=bd2.sat;maint+=bd2.maint;rpd+=bd2.rp;
   }
   // Count multi-tile buildings with energy efficiency
   for(var bi=0;bi<buildings.length;bi++){
@@ -2126,7 +2425,12 @@ function recalc(){
     maint+=bd3.maint;rpd+=bd3.rp;
   }
   G.pow=pw;G.powNeed=pn;G.sec=sec;G.sat=Math.max(10,Math.min(100,50+sat+(G.weatherSatMod||0)));
-  G.maint=maint;G.bld=bld;G.enc=enc;G.rpd=rpd;
+  G.maint=maint;G.bld=bld;G.enc=enc;
+  // Staff RP bonuses applied to rpd
+  var rpBonus=0;
+  if(G.staffGrant) rpBonus+=3;
+  if(G.staffWu)    rpBonus+=5;
+  G.rpd=rpd+rpBonus;
   var ok=pw>=pn,sOk=sec>=0;
   // Disease penalty
   var disPenalty=1.0;
@@ -2138,7 +2442,19 @@ function recalc(){
   }
   var wMult=G.weatherVisMult!==undefined?G.weatherVisMult:1.0;
   G.vis=Math.floor(vis*(ok?1:0.4)*(sOk?1:0.6)*(G.sat/100)*wMult*disPenalty);
-  G.inc=G.vis*45+bld*6;G.costs=maint+300;
+  G.inc=G.vis*45+bld*6;G.costs=maint+300+staffSalaryTotal();
+
+  // ── STAFF BONUSES ──
+  if(G.staffHammond) G.vis=Math.floor(G.vis*1.15);
+  if(G.staffEllie)   G.sat=Math.min(100,G.sat+8);
+  if(G.staffMuldoon) G.sec+=4;
+  // ── REPUTAZIONE ──
+  calcStars();
+  // Apply star multiplier to visitors (each star above 1 = +15% visitors)
+  if(G.stars>1){
+    var starMult = G.marketingGlobal ? (1+(G.stars-1)*0.2) : (1+(G.stars-1)*0.15);
+    G.vis=Math.floor(G.vis*starMult);
+  }
 }
 
 function draw(){
@@ -3033,8 +3349,9 @@ document.querySelectorAll('.bld-btn').forEach(function(btn){btn.addEventListener
 document.querySelectorAll('.tab').forEach(function(tab){
   tab.addEventListener('click',function(){
     document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});tab.classList.add('active');
-    ['build','research','missions','stats'].forEach(function(id){var el=document.getElementById('tab-'+id);if(el)el.style.display=tab.getAttribute('data-tab')===id?'block':'none';});
+    ['build','research','missions','stats','staff'].forEach(function(id){var el=document.getElementById('tab-'+id);if(el)el.style.display=tab.getAttribute('data-tab')===id?'block':'none';});
     if(tab.getAttribute('data-tab')==='stats')drawChart();
+    if(tab.getAttribute('data-tab')==='staff')buildStaffUI();
   });
 });
 
@@ -3087,6 +3404,7 @@ function decayEnclosureEnergy(){
     if(enc.energy===undefined)enc.energy=100;
     var b=BD[enc.key];if(!b)continue;
     var decay=b.danger?5:3;
+    if(G.staffHarding) decay=Math.max(1, decay-1); // Harding: -1 decay/day
     enc.energy=Math.max(0,enc.energy-decay);
 
     if(enc.energy<=0){
@@ -3272,6 +3590,37 @@ function updateUI(){
   document.getElementById('day-info').textContent='G.'+G.day;
   var wi=document.getElementById('weather-info');
   if(wi)wi.textContent=WEATHER_ICONS[weather]||'☀️';
+
+  // ── STELLE topbar ──
+  var stars=G.stars||1;
+  var maxS=G.marketingGlobal?5:4;
+  var starsEl=document.getElementById('v-stars');
+  if(starsEl){starsEl.textContent=renderStars(stars,maxS);starsEl.style.color=starsColor(stars);}
+
+  // ── STELLE scheda stats ──
+  var starsBig=document.getElementById('sv-stars-big');
+  var starsLbl=document.getElementById('sv-stars-label');
+  var starsBar=document.getElementById('bar-stars');
+  var starsScore=document.getElementById('sv-star-score');
+  var starsHint=document.getElementById('sv-stars-hint');
+  if(starsBig){
+    starsBig.textContent=renderStars(stars,maxS);
+    starsBig.style.color=starsColor(stars);
+  }
+  var starsLabels=['','★ Nascente','★★ Conosciuto','★★★ Famoso','★★★★ Rinomato','★★★★★ Leggendario'];
+  if(starsLbl) starsLbl.textContent=starsLabels[stars]||'';
+  if(starsBar){starsBar.style.width=(G.starScore||0)+'%';starsBar.style.background=starsColor(stars);}
+  if(starsScore) starsScore.textContent=(G.starScore||0)+' / 100';
+  if(starsHint){
+    var hints=[];
+    if(G.vis<200) hints.push('👥 Più visitatori');
+    if(G.sec<5)   hints.push('🔒 Sicurezza bassa');
+    if(G.sat<70)  hints.push('😊 Soddisfazione '+G.sat+'%');
+    if((G.victims||0)>0) hints.push('⚠ Vittime: '+G.victims);
+    if(!G.marketingGlobal&&stars>=4) hints.push('🔬 Ricerca Marketing Globale per ★★★★★');
+    starsHint.textContent=hints.length?'Per migliorare: '+hints.join(' · '):'✅ Ottimo!';
+  }
+
   var net=G.inc-G.costs;
 
   // Finanze
@@ -3377,6 +3726,7 @@ function updateUI(){
 
 function nextDay(){
   var net=G.inc-G.costs;G.money+=net;G.rp+=G.rpd;G.day++;
+  var prevStars=G.stars||1;
   advanceWeather();applyWeatherEffects();
   decayEnclosureEnergy();autoWorkshopRepair();
   decayBuildingEnergy();autoRepairBuildings();
@@ -3384,6 +3734,14 @@ function nextDay(){
   looseDinoDailyDamage();
   rangerCatchDinos();
   if(G.day>10)randomEvent();recalc();checkMissions();
+  // Notifica cambio stelle
+  if((G.stars||1)>prevStars){
+    var sc=starsColor(G.stars);
+    log('⭐ REPUTAZIONE AUMENTATA: '+renderStars(G.stars,G.marketingGlobal?5:4)+' ('+['','Nascente','Conosciuto','Famoso','Rinomato','Leggendario'][G.stars]+')','g');
+    snd('mission');
+  } else if((G.stars||1)<prevStars){
+    log('⚠ Reputazione calata: '+renderStars(G.stars,G.marketingGlobal?5:4),'d');
+  }
   visHistory.push(G.vis);incHistory.push(G.inc-G.costs);
   if(visHistory.length>40){visHistory.shift();incHistory.shift();}
   updateUI();draw();buildResearchUI();
@@ -3401,12 +3759,20 @@ function nextDay(){
 }
 
 function randomEvent(){
+  // Nedry sabotage: 5% chance per day if hired
+  if(G.staffNedry && Math.random()<0.05){
+    var sabotage=Math.floor(Math.random()*3000+1000);
+    G.money-=sabotage;
+    log('💾 Nedry ha sabotato un sistema! -$'+sabotage.toLocaleString(),'d');
+  }
   var r=Math.random();
-  if(r<0.07){var l=Math.floor(Math.random()*2000+500);G.money-=l;log('🔧 Guasto: -$'+l.toLocaleString(),'d');}
-  else if(r<0.12&&G.sec<2){G.money-=5000;log('🦖 FUGA! Panico: -$5,000','d');}
+  // Malcolm halves chaos event damage
+  var chaosMult = G.staffMalcolm ? 0.5 : 1.0;
+  if(r<0.07){var l=Math.floor((Math.random()*2000+500)*chaosMult);G.money-=l;log('🔧 Guasto: -$'+l.toLocaleString(),'d');}
+  else if(r<0.12&&G.sec<2){G.money-=Math.floor(5000*chaosMult);log('🦖 FUGA! Panico: -$'+Math.floor(5000*chaosMult).toLocaleString(),'d');}
   else if(r<0.16){var bonus=Math.floor(G.vis*10+300);G.money+=bonus;log('📰 Articolo! +$'+bonus.toLocaleString(),'g');}
   else if(r<0.19){var rb=Math.floor(Math.random()*4)+1;G.rp+=rb;log('🔬 Scoperta! +'+rb+' RP','g');}
-  else if(r<0.23&&enclosures.length>0){var tgt=enclosures[Math.floor(Math.random()*enclosures.length)];var dmg=10+Math.floor(Math.random()*20);tgt.energy=Math.max(0,(tgt.energy||100)-dmg);log('⚡ Guasto al recinto '+BD[tgt.key].lbl+'! -'+dmg+'% energia','d');}
+  else if(r<0.23&&enclosures.length>0){var tgt=enclosures[Math.floor(Math.random()*enclosures.length)];var dmg=Math.floor((10+Math.floor(Math.random()*20))*chaosMult);tgt.energy=Math.max(0,(tgt.energy||100)-dmg);log('⚡ Guasto al recinto '+BD[tgt.key].lbl+'! -'+dmg+'% energia','d');}
 }
 
 function endGame(win,reason){
@@ -3414,7 +3780,7 @@ function endGame(win,reason){
   var ov=document.getElementById('overlay');ov.classList.add('show');
   var t=document.getElementById('ov-title'),b=document.getElementById('ov-body');
   var md=MISSIONS.filter(function(m){return m.done;}).length;
-  if(win){t.textContent='🎉 PARCO APERTO!';t.className='ov-win';b.textContent='Hai raggiunto 1000 visitatori/giorno!\nIsla Nublar è famosa in tutto il mondo.\n\nGiorno '+G.day+' | $'+G.money.toLocaleString()+'\nVisitatori: '+G.vis+' | RP: '+G.rp+'\nVittime: '+(G.victims||0)+' | Missioni: '+md+'/'+MISSIONS.length;}
+  if(win){t.textContent='🎉 PARCO APERTO!';t.className='ov-win';b.textContent='Hai raggiunto 1000 visitatori/giorno!\nIsla Nublar è famosa in tutto il mondo.\n\nGiorno '+G.day+' | $'+G.money.toLocaleString()+'\nVisitatori: '+G.vis+' | RP: '+G.rp+'\nReputazione: '+renderStars(G.stars||1,5)+'\nVittime: '+(G.victims||0)+' | Missioni: '+md+'/'+MISSIONS.length;}
   else{t.textContent='💸 FALLIMENTO';t.className='ov-lose';b.textContent='Il parco ha chiuso al giorno '+G.day+'.\n'+(reason==='bancarotta'?'Fondi esauriti.':reason==='vittime'?'Troppi visitatori morti.\nLe autorità hanno chiuso il parco.':'Troppi incidenti.')+'\n\nVisitatori: '+G.vis+'/1000 | Vittime: '+(G.victims||0)+'\nMissioni: '+md+'/'+MISSIONS.length;}
 }
 
@@ -3427,7 +3793,7 @@ function pmMsg(txt,color){var el=document.getElementById('pm-msg');el.textConten
 document.getElementById('menu-btn').addEventListener('click',function(){if(document.getElementById('pause-overlay').classList.contains('show')){closePauseMenu();}else{openPauseMenu();}});
 document.getElementById('pm-resume').addEventListener('click',function(){closePauseMenu();});
 document.getElementById('pm-save').addEventListener('click',function(){save();pmMsg('✅ Partita salvata!','#39ff14');});
-document.getElementById('pm-load').addEventListener('click',function(){var ok=load();if(ok){closePauseMenu();recalc();draw();drawMini();updateUI();buildResearchUI();buildMissionsUI();log('📂 Partita caricata — Giorno '+G.day,'g');}else{pmMsg('⚠ Nessun salvataggio trovato.','#ffb300');}});
+document.getElementById('pm-load').addEventListener('click',function(){var ok=load();if(ok){closePauseMenu();recalc();draw();drawMini();updateUI();buildResearchUI();buildMissionsUI();buildStaffUI();log('📂 Partita caricata — Giorno '+G.day,'g');}else{pmMsg('⚠ Nessun salvataggio trovato.','#ffb300');}});
 document.getElementById('pm-restart').addEventListener('click',function(){showGameConfirm('Ricominciare da capo?\nTutti i progressi andranno persi.',function(){closePauseMenu();clearSave();initGame(false);});});
 
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(document.getElementById('pause-overlay').classList.contains('show')){closePauseMenu();}else if(G.alive){openPauseMenu();}}});
