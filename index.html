@@ -162,7 +162,111 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
 .staff-lock{font-size:8px;color:var(--dim);}
 .pause-menu-btn.danger:hover{background:var(--red);color:var(--bg);}
 
-/* CONFIRM MODAL */
+/* ── MOBILE UI OVERHAUL ── */
+@media (max-width: 600px) {
+  /* Topbar compatta: una riga senza logo, valori più grandi */
+  #topbar { padding: 3px 6px; gap: 6px; }
+  #logo { display: none; }
+  .res .val { font-size: 12px; min-width: 28px; }
+  .res .lbl { font-size: 9px; }
+  #day-info { font-size: 6px; }
+  #weather-info { font-size: 12px; margin-left: 0; }
+  #v-stars { font-size: 11px !important; letter-spacing: 0 !important; }
+  #menu-btn { font-size: 10px; padding: 3px 7px; }
+  #alert-bar { font-size: 9px; min-height: 10px; }
+
+  /* Layout principale: colonna, pannello sotto */
+  #body { flex-direction: column; }
+  #viewport { flex: 1; min-height: 0; }
+
+  /* Pannello mobile: bottom sheet fissa */
+  #panel {
+    width: 100% !important;
+    height: var(--panel-h, 240px);
+    border-left: none !important;
+    border-top: 2px solid var(--border);
+    flex-shrink: 0;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Handle per ridimensionare il pannello */
+  #panel::before {
+    content: '';
+    display: block;
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 4px auto 2px;
+    flex-shrink: 0;
+  }
+
+  /* Tab più grandi e touch-friendly */
+  #panel-tabs { flex-shrink: 0; }
+  .tab { padding: 8px 2px; font-size: 14px; }
+
+  /* Panel body scrollabile */
+  #panel-body { padding: 4px 6px; }
+
+  /* Build buttons più alti per il touch */
+  .bld-btn { padding: 7px 5px; margin-bottom: 3px; }
+  .bld-btn .bi { font-size: 16px; width: 22px; }
+  .bld-btn .bn { font-size: 11px; }
+  .bld-btn .bc { font-size: 9px; }
+
+  /* Info card collassata di default su mobile */
+  #info-card { min-height: 0 !important; padding: 4px 7px; }
+  #ic-icon { font-size: 14px; }
+  #ic-name { font-size: 5px; }
+  #ic-body { font-size: 9px; }
+
+  /* Bottom bar più compatta */
+  #bottom-bar { padding: 4px 6px; }
+  #next-day-btn { padding: 10px; font-size: 6px; }
+  #auto-btn, #speed-btn { font-size: 10px; padding: 6px 4px; }
+
+  /* Log nascosto su mobile (toggle) */
+  #log { height: 0; min-height: 0; padding: 0; border: none; overflow: hidden; transition: height 0.2s; }
+  #log.open { height: 60px; padding: 3px 8px; border-top: 2px solid var(--border); }
+
+  /* Minimap più piccola e in alto a destra su mobile */
+  #mini-canvas {
+    bottom: auto !important;
+    top: 6px;
+    left: auto !important;
+    right: 6px;
+    width: 80px !important;
+    height: 60px !important;
+  }
+
+  /* Tooltip più grande */
+  #tooltip { font-size: 12px; max-width: 200px; padding: 8px 12px; }
+
+  /* Staff cards touch-friendly */
+  .staff-btn { padding: 6px 10px; font-size: 10px; }
+  .staff-emoji { font-size: 22px; }
+  .staff-name { font-size: 6px; }
+
+  /* Research / missions cards */
+  .res-card button { padding: 6px; font-size: 10px; }
+  .mis-card { padding: 6px; }
+  .mis-card .mn { font-size: 11px; }
+
+  /* Pause overlay buttons */
+  .pause-menu-btn { width: 100%; max-width: 280px; padding: 14px; font-size: 9px; }
+
+  /* Confirm modal */
+  #confirm-box { padding: 12px; }
+}
+
+/* Landscape su mobile: pannello a destra più stretto */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+  #body { flex-direction: row; }
+  #panel { width: 180px !important; height: 100% !important; border-top: none !important; border-left: 2px solid var(--border) !important; }
+  #panel::before { display: none; }
+  .tab { font-size: 12px; padding: 6px 1px; }
+  #log { height: 36px; }
+}
 #confirm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;align-items:center;justify-content:center;}
 #confirm-modal.show{display:flex;}
 #confirm-box{background:var(--panel);border:2px solid var(--neon);padding:16px;max-width:280px;width:90%;text-align:center;box-shadow:0 0 30px rgba(57,255,20,0.15);}
@@ -3812,6 +3916,67 @@ document.getElementById('btn-reset').addEventListener('click',function(){showGam
 document.getElementById('ov-btn').addEventListener('click',function(){clearSave();initGame(false);});
 window.addEventListener('resize',function(){setSize();clampCam();draw();drawMini();});
 window.addEventListener('load',function(){initGame(true);});
+
+// ── MOBILE: LOG TOGGLE BUTTON ──
+(function(){
+  var logEl=document.getElementById('log');
+  var btn=document.createElement('button');
+  btn.id='log-toggle';btn.textContent='📋';btn.title='Mostra/nascondi log';
+  btn.style.cssText='position:fixed;bottom:6px;left:6px;z-index:20;background:rgba(10,22,10,0.85);border:1px solid var(--border);color:var(--dim);font-size:14px;width:32px;height:32px;border-radius:50%;cursor:pointer;display:none;padding:0;line-height:1;';
+  document.body.appendChild(btn);
+  btn.addEventListener('click',function(){
+    logEl.classList.toggle('open');
+    btn.style.color=logEl.classList.contains('open')?'var(--neon)':'var(--dim)';
+  });
+  function checkMobile(){btn.style.display=window.innerWidth<=600?'block':'none';}
+  window.addEventListener('resize',checkMobile);
+  checkMobile();
+})();
+
+// ── MOBILE: PINCH-TO-ZOOM ──
+(function(){
+  var vp3b=document.getElementById('viewport');
+  var initDist=0,initTS2=36;
+  vp3b.addEventListener('touchstart',function(e){
+    if(e.touches.length===2){
+      initDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      initTS2=TS;
+    }
+  },{passive:true});
+  vp3b.addEventListener('touchmove',function(e){
+    if(e.touches.length===2){
+      e.preventDefault();
+      var dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      var newTS=Math.max(20,Math.min(56,Math.round(initTS2*(dist/initDist))));
+      if(newTS!==TS){
+        var r=vp3b.getBoundingClientRect();
+        var mx=((e.touches[0].clientX+e.touches[1].clientX)/2)-r.left;
+        var my=((e.touches[0].clientY+e.touches[1].clientY)/2)-r.top;
+        var old=TS;TS=newTS;
+        camX=mx-(mx-camX)*(TS/old);camY=my-(my-camY)*(TS/old);
+        setSize();clampCam();draw();drawMini();
+      }
+    }
+  },{passive:false});
+})();
+
+// ── MOBILE: PANEL DRAG RESIZE ──
+(function(){
+  var panel=document.getElementById('panel');
+  var tabBar=document.getElementById('panel-tabs');
+  var dragging=false,startY2=0,startH2=0;
+  tabBar.addEventListener('touchstart',function(e){
+    if(window.innerWidth>600)return;
+    dragging=true;startY2=e.touches[0].clientY;startH2=panel.offsetHeight;
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(!dragging)return;
+    var dy=startY2-e.touches[0].clientY;
+    var newH=Math.max(120,Math.min(window.innerHeight*0.75,startH2+dy));
+    panel.style.height=newH+'px';
+  },{passive:true});
+  document.addEventListener('touchend',function(){dragging=false;});
+})();
 </script>
 <!-- GAME CONFIRM MODAL (mobile-safe, replaces confirm()) -->
 <div id="game-confirm" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:400;align-items:center;justify-content:center;">
