@@ -24,31 +24,8 @@
   --blue:#00cfff;--dim:#2e5a2e;--text:#c0e0c0;--purple:#bb44ff;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-:root { --ui-scale:1; }
-
-#panel {
-  font-size: calc(12px * var(--ui-scale));
-}
-
-button {
-  font-size: calc(12px * var(--ui-scale));
-}
-<script>
-if (!location.search.includes('v=')) {
-  location.replace(location.pathname + '?v=' + Date.now());
-}
-
-function updateUIScale() {
-  const baseWidth = 390;
-  const scale = window.innerWidth / baseWidth;
-  document.documentElement.style.setProperty('--ui-scale', scale);
-}
-
-window.addEventListener('resize', updateUIScale);
-updateUIScale();
-</script>
-body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none;}
-/* iOS Safari 100vh fix */
+body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;user-select:none;}
+/* iOS Safari fix */
 @supports (-webkit-touch-callout: none){body{height:-webkit-fill-available;}}
 #topbar{background:var(--panel);border-bottom:2px solid var(--border);padding:4px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;}
 #logo{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--neon);text-shadow:0 0 8px var(--neon);white-space:nowrap;}
@@ -164,108 +141,124 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
 
 /* ── MOBILE UI OVERHAUL ── */
 @media (max-width: 600px) {
-  /* Topbar compatta: una riga senza logo, valori più grandi */
-  #topbar { padding: 3px 6px; gap: 6px; }
+  /* Body occupa esattamente la viewport, colonna */
+  body { height: 100dvh; flex-direction: column; }
+
+  /* Topbar compatta */
+  #topbar { padding: 3px 6px; gap: 5px; flex-wrap: nowrap; }
   #logo { display: none; }
-  .res .val { font-size: 12px; min-width: 28px; }
+  .res .val { font-size: 11px; min-width: 24px; }
   .res .lbl { font-size: 9px; }
-  #day-info { font-size: 6px; }
-  #weather-info { font-size: 12px; margin-left: 0; }
-  #v-stars { font-size: 11px !important; letter-spacing: 0 !important; }
-  #menu-btn { font-size: 10px; padding: 3px 7px; }
-  #alert-bar { font-size: 9px; min-height: 10px; }
+  #day-info { font-size: 6px; margin-left: 2px; }
+  #weather-info { font-size: 11px; margin-left: 0; }
+  #v-stars { font-size: 10px !important; letter-spacing: 0 !important; }
+  #menu-btn { font-size: 10px; padding: 3px 6px; margin-left: auto; }
+  #alert-bar { font-size: 9px; min-height: 0; line-height: 1.2; }
 
-  /* Layout principale: colonna, pannello sotto */
-  #body { flex-direction: column; }
-  #viewport { flex: 1; min-height: 0; }
+  /* Layout: mappa in alto, pannello in basso */
+  #body { flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
 
-  /* Pannello mobile: bottom sheet fissa */
+  /* Viewport: prende tutto lo spazio disponibile */
+  #viewport { flex: 1 1 0; min-height: 0; width: 100%; }
+
+  /* Log compresso su mobile */
+  #log { height: 0; min-height: 0; padding: 0; border: none; overflow: hidden; }
+  #log.open { height: 50px; padding: 3px 8px; border-top: 2px solid var(--border); }
+
+  /* Pannello: altezza fissa in basso, NON si espande */
   #panel {
     width: 100% !important;
-    height: var(--panel-h, 240px);
+    height: 220px !important;
+    min-height: 220px !important;
+    max-height: 220px !important;
+    flex-shrink: 0 !important;
     border-left: none !important;
     border-top: 2px solid var(--border);
-    flex-shrink: 0;
     flex-direction: column;
-    position: relative;
+    overflow: hidden;
   }
 
-  /* Handle per ridimensionare il pannello */
+  /* Handle di trascinamento */
   #panel::before {
     content: '';
     display: block;
-    width: 36px; height: 4px;
+    width: 40px; height: 4px;
     background: var(--border);
     border-radius: 2px;
-    margin: 4px auto 2px;
+    margin: 5px auto 2px;
     flex-shrink: 0;
   }
 
-  /* Tab più grandi e touch-friendly */
+  /* Tab emoji più grandi, touch-friendly */
   #panel-tabs { flex-shrink: 0; }
-  .tab { padding: 8px 2px; font-size: 14px; }
+  .tab { padding: 7px 0; font-size: 16px; }
 
   /* Panel body scrollabile */
-  #panel-body { padding: 4px 6px; }
+  #panel-body { padding: 3px 5px; flex: 1; overflow-y: auto; }
 
-  /* Build buttons più alti per il touch */
+  /* Build buttons */
   .bld-btn { padding: 7px 5px; margin-bottom: 3px; }
-  .bld-btn .bi { font-size: 16px; width: 22px; }
+  .bld-btn .bi { font-size: 15px; width: 20px; }
   .bld-btn .bn { font-size: 11px; }
   .bld-btn .bc { font-size: 9px; }
 
-  /* Info card collassata di default su mobile */
-  #info-card { min-height: 0 !important; padding: 4px 7px; }
-  #ic-icon { font-size: 14px; }
-  #ic-name { font-size: 5px; }
-  #ic-body { font-size: 9px; }
+  /* Info card nascosta su mobile per risparmiare spazio */
+  #info-card { display: none !important; }
 
-  /* Bottom bar più compatta */
-  #bottom-bar { padding: 4px 6px; }
-  #next-day-btn { padding: 10px; font-size: 6px; }
-  #auto-btn, #speed-btn { font-size: 10px; padding: 6px 4px; }
+  /* Bottom bar compatta */
+  #bottom-bar { padding: 4px 5px; flex-shrink: 0; }
+  #next-day-btn { padding: 9px; font-size: 6px; }
+  #auto-btn, #speed-btn { font-size: 9px; padding: 5px 3px; }
 
-  /* Log nascosto su mobile (toggle) */
-  #log { height: 0; min-height: 0; padding: 0; border: none; overflow: hidden; transition: height 0.2s; }
-  #log.open { height: 60px; padding: 3px 8px; border-top: 2px solid var(--border); }
-
-  /* Minimap più piccola e in alto a destra su mobile */
+  /* Minimap in alto a destra */
   #mini-canvas {
     bottom: auto !important;
-    top: 6px;
+    top: 6px !important;
     left: auto !important;
-    right: 6px;
-    width: 80px !important;
-    height: 60px !important;
+    right: 6px !important;
+    width: 72px !important;
+    height: 54px !important;
   }
 
-  /* Tooltip più grande */
+  /* Tooltip */
   #tooltip { font-size: 12px; max-width: 200px; padding: 8px 12px; }
 
-  /* Staff cards touch-friendly */
+  /* Staff */
   .staff-btn { padding: 6px 10px; font-size: 10px; }
-  .staff-emoji { font-size: 22px; }
-  .staff-name { font-size: 6px; }
+  .staff-emoji { font-size: 20px; }
 
-  /* Research / missions cards */
+  /* Research / missions */
   .res-card button { padding: 6px; font-size: 10px; }
-  .mis-card { padding: 6px; }
   .mis-card .mn { font-size: 11px; }
 
-  /* Pause overlay buttons */
+  /* Overlay buttons */
   .pause-menu-btn { width: 100%; max-width: 280px; padding: 14px; font-size: 9px; }
-
-  /* Confirm modal */
-  #confirm-box { padding: 12px; }
 }
 
-/* Landscape su mobile: pannello a destra più stretto */
+/* Landscape mobile: pannello a destra */
 @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+  body { flex-direction: column; }
   #body { flex-direction: row; }
-  #panel { width: 180px !important; height: 100% !important; border-top: none !important; border-left: 2px solid var(--border) !important; }
+  #panel {
+    width: 175px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    border-top: none !important;
+    border-left: 2px solid var(--border) !important;
+  }
   #panel::before { display: none; }
-  .tab { font-size: 12px; padding: 6px 1px; }
-  #log { height: 36px; }
+  .tab { font-size: 13px; padding: 6px 1px; }
+  #log { height: 32px; }
+  #info-card { display: flex !important; }
+  #mini-canvas {
+    top: auto !important;
+    bottom: 6px !important;
+    right: 6px !important;
+    left: auto !important;
+    width: 72px !important;
+    height: 54px !important;
+  }
 }
 #confirm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;align-items:center;justify-content:center;}
 #confirm-modal.show{display:flex;}
@@ -3100,32 +3093,57 @@ function clampCam(){
 function sc2cell(cx,cy){var vp=document.getElementById('viewport'),r=vp.getBoundingClientRect();return{x:Math.floor((cx-r.left-camX)/TS),y:Math.floor((cy-r.top-camY)/TS)};}
 
 var vp3=document.getElementById('viewport');
-vp3.addEventListener('mousedown',function(e){dragging=true;didDrag=false;dragSX=e.clientX;dragSY=e.clientY;camSX=camX;camSY=camY;vp3.classList.add('grabbing');});
-vp3.addEventListener('mousemove',function(e){
-  if(dragging){var dx=e.clientX-dragSX,dy=e.clientY-dragSY;if(Math.abs(dx)>4||Math.abs(dy)>4)didDrag=true;camX=camSX+dx;camY=camSY+dy;clampCam();drawMini();}
-  var c=sc2cell(e.clientX,e.clientY);if(c.x!==hoverX||c.y!==hoverY){hoverX=c.x;hoverY=c.y;draw();showTooltip(e.clientX,e.clientY,c.x,c.y);}
+vp3.addEventListener('mousedown',function(e){
+  if(e.button!==0&&e.button!==2)return;
+  dragging=true;didDrag=false;
+  dragSX=e.clientX;dragSY=e.clientY;camSX=camX;camSY=camY;
+  vp3.classList.add('grabbing');
+  e.preventDefault();
 });
-vp3.addEventListener('mouseup',function(e){
+document.addEventListener('mousemove',function(e){
+  if(dragging){
+    var dx=e.clientX-dragSX,dy=e.clientY-dragSY;
+    if(Math.abs(dx)>4||Math.abs(dy)>4)didDrag=true;
+    camX=camSX+dx;camY=camSY+dy;clampCam();drawMini();
+  }
+  // Hover only when inside viewport
+  var r=vp3.getBoundingClientRect();
+  if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){
+    var c=sc2cell(e.clientX,e.clientY);
+    if(c.x!==hoverX||c.y!==hoverY){hoverX=c.x;hoverY=c.y;draw();showTooltip(e.clientX,e.clientY,c.x,c.y);}
+  } else if(hoverX!==-1||hoverY!==-1){
+    hoverX=-1;hoverY=-1;draw();document.getElementById('tooltip').style.display='none';
+  }
+});
+document.addEventListener('mouseup',function(e){
+  if(!dragging)return;
   vp3.classList.remove('grabbing');
   if(!didDrag){
-    var c=sc2cell(e.clientX,e.clientY);
-    if(e.button===2){demolish(c.x,c.y);}
-    else{
-      // Check if clicking an existing range building — toggle range display
-      var ri=getBuildingRangeAt(c.x,c.y);
-      if(ri&&selectedTool==='demolish'){
-        if(selectedTileX===c.x&&selectedTileY===c.y){selectedTileX=-1;selectedTileY=-1;}
-        else{selectedTileX=c.x;selectedTileY=c.y;}
-        draw();
-      } else {
-        selectedTileX=-1;selectedTileY=-1;
-        place(c.x,c.y);
+    var r2=vp3.getBoundingClientRect();
+    // Only act if mouseup is inside the viewport
+    if(e.clientX>=r2.left&&e.clientX<=r2.right&&e.clientY>=r2.top&&e.clientY<=r2.bottom){
+      var c=sc2cell(e.clientX,e.clientY);
+      if(e.button===2){demolish(c.x,c.y);}
+      else{
+        var ri=getBuildingRangeAt(c.x,c.y);
+        if(ri&&selectedTool==='demolish'){
+          if(selectedTileX===c.x&&selectedTileY===c.y){selectedTileX=-1;selectedTileY=-1;}
+          else{selectedTileX=c.x;selectedTileY=c.y;}
+          draw();
+        } else {
+          selectedTileX=-1;selectedTileY=-1;
+          place(c.x,c.y);
+        }
       }
     }
   }
   dragging=false;
 });
-vp3.addEventListener('mouseleave',function(){dragging=false;hoverX=-1;hoverY=-1;draw();document.getElementById('tooltip').style.display='none';});
+vp3.addEventListener('mouseleave',function(){
+  // Don't reset dragging — drag continues outside viewport
+  hoverX=-1;hoverY=-1;
+  if(!dragging){draw();document.getElementById('tooltip').style.display='none';}
+});
 vp3.addEventListener('contextmenu',function(e){e.preventDefault();});
 vp3.addEventListener('wheel',function(e){
   e.preventDefault();var r=vp3.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,old=TS;
@@ -3972,8 +3990,10 @@ window.addEventListener('load',function(){initGame(true);});
   document.addEventListener('touchmove',function(e){
     if(!dragging)return;
     var dy=startY2-e.touches[0].clientY;
-    var newH=Math.max(120,Math.min(window.innerHeight*0.75,startH2+dy));
+    var newH=Math.max(150,Math.min(window.innerHeight*0.70,startH2+dy));
     panel.style.height=newH+'px';
+    panel.style.minHeight=newH+'px';
+    panel.style.maxHeight=newH+'px';
   },{passive:true});
   document.addEventListener('touchend',function(){dragging=false;});
 })();
