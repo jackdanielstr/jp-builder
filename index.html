@@ -194,7 +194,7 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
   .tab { padding: 7px 0; font-size: 16px; }
 
   /* Panel body scrollabile */
-  #panel-body { padding: 3px 5px; flex: 1; overflow-y: auto; }
+  #panel-body { padding: 3px 5px; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
   /* Build buttons */
   .bld-btn { padding: 7px 5px; margin-bottom: 3px; }
@@ -208,7 +208,6 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
   /* Bottom bar compatta */
   #bottom-bar { padding: 4px 5px; flex-shrink: 0; }
   #next-day-btn { padding: 9px; font-size: 6px; }
-  #auto-btn, #speed-btn { font-size: 9px; padding: 5px 3px; }
 
   /* Minimap in alto a destra */
   #mini-canvas {
@@ -246,11 +245,18 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
     max-height: none !important;
     border-top: none !important;
     border-left: 2px solid var(--border) !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
   #panel::before { display: none; }
+  #panel-tabs { flex-shrink: 0; }
+  #panel-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 3px 5px; }
   .tab { font-size: 13px; padding: 6px 1px; }
-  #log { height: 32px; }
-  #info-card { display: flex !important; }
+  #log { height: 32px; min-height: 32px; padding: 2px 6px; border-top: 1px solid var(--border); overflow-y: auto; }
+  #info-card { display: flex !important; min-height: 0; padding: 4px 6px; }
+  #bottom-bar { padding: 3px 5px; flex-shrink: 0; }
+  #next-day-btn { padding: 7px; font-size: 6px; }
   #mini-canvas {
     top: auto !important;
     bottom: 6px !important;
@@ -499,10 +505,6 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
     </div>
     <div id="bottom-bar">
       <button id="next-day-btn">▶ GIORNO SUCCESSIVO</button>
-      <div style="display:flex;gap:4px;margin-top:4px;">
-        <button class="ctrl-btn" id="auto-btn" style="flex:1;text-align:center;font-size:9px;">⏩ AUTO: OFF</button>
-        <button class="ctrl-btn" id="speed-btn" style="width:44px;text-align:center;font-size:9px;">1×</button>
-      </div>
     </div>
   </div>
 </div>
@@ -1718,8 +1720,7 @@ var hoverX=-1,hoverY=-1,visHistory=[],incHistory=[],paused=false;
 var selectedTileX=-1,selectedTileY=-1; // clicked existing building to show range
 var fugLayer=null,fugCtx2=null,fugs=[],FICONS=['🦖','🦕','🐉','🦅'];
 var cars=[],carTick=0,rafId=null,buildFlash=null;
-var autoAdvance=false,autoSpeed=1,autoTimer=0,lastFrameTime=0;
-var autoSpeeds=[1,2,4],autoSpeedIdx=0;
+var lastFrameTime=0;
 
 // ── RANGER SYSTEM ──
 var rangerVehicles=[]; // animated ranger jeeps chasing loose dinos on screen
@@ -2406,7 +2407,7 @@ function initGame(tryLoad){
   weather='sunny';weatherDaysLeft=3;stormDaysLeft=0;
   G.weatherVisMult=1.0;G.weatherSatMod=0;
   enclosures=[];buildings=[];singleBldEnergy={};
-  autoAdvance=false;autoTimer=0;autoSpeedIdx=0;autoSpeed=1;
+  buildResearchUI();buildMissionsUI();buildStaffUI();
   camX=0;camY=0;selectedTool='demolish';setTool('demolish');
   var vp=document.getElementById('viewport');
   if(!fugLayer){
@@ -2417,7 +2418,7 @@ function initGame(tryLoad){
   if(rafId)cancelAnimationFrame(rafId);
   rafId=requestAnimationFrame(animLoop);
   setSize();clampCam();recalc();draw();drawMini();updateUI();
-  buildResearchUI();buildMissionsUI();buildStaffUI();updateAutoBtn();
+  buildResearchUI();buildMissionsUI();buildStaffUI();
   document.getElementById('log').innerHTML='';
   document.getElementById('overlay').classList.remove('show');
   if(loaded){log('✅ Partita caricata — Giorno '+G.day,'g');}
@@ -3014,7 +3015,6 @@ function updateFugs(){
 
 function animLoop(ts){
   var dt=lastFrameTime?Math.min((ts-lastFrameTime)/1000,0.1):0;lastFrameTime=ts;
-  if(autoAdvance&&G.alive&&!paused){autoTimer+=dt;var interval=1/autoSpeed;if(autoTimer>=interval){autoTimer-=interval;nextDay();}}
   updateFugs();updateJeepTours();updateLooseDinos();updateRangerVehicles();
   if(!IS_IOS&&Math.random()<0.3)spawnWeatherParticles();
   if(!IS_IOS)updateWeatherParticles();
@@ -3920,15 +3920,6 @@ document.getElementById('pm-restart').addEventListener('click',function(){showGa
 
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(document.getElementById('pause-overlay').classList.contains('show')){closePauseMenu();}else if(G.alive){openPauseMenu();}}});
 document.getElementById('next-day-btn').addEventListener('click',function(){if(!G.alive)return;if(paused){pmMsg('⏸ Riprendi prima la partita!','#ffb300');return;}nextDay();},true);
-
-function updateAutoBtn(){
-  document.getElementById('auto-btn').textContent='⏩ AUTO: '+(autoAdvance?'ON':'OFF');
-  document.getElementById('auto-btn').style.borderColor=autoAdvance?'var(--neon)':'var(--border)';
-  document.getElementById('auto-btn').style.color=autoAdvance?'var(--neon)':'var(--text)';
-  document.getElementById('speed-btn').textContent=autoSpeeds[autoSpeedIdx]+'×';
-}
-document.getElementById('auto-btn').addEventListener('click',function(){autoAdvance=!autoAdvance;autoTimer=0;updateAutoBtn();});
-document.getElementById('speed-btn').addEventListener('click',function(){autoSpeedIdx=(autoSpeedIdx+1)%autoSpeeds.length;autoSpeed=autoSpeeds[autoSpeedIdx];autoTimer=0;updateAutoBtn();});
 
 document.getElementById('btn-reset').addEventListener('click',function(){showGameConfirm('Ricominciare da capo?\nTutti i progressi andranno persi.',function(){clearSave();initGame(false);});});
 document.getElementById('ov-btn').addEventListener('click',function(){clearSave();initGame(false);});
