@@ -1010,35 +1010,122 @@ function drawEnclosures(){
         ctx.fillRect(px+pw*0.2+rr*pw*0.1,py+ph*0.28,2,8);
       }
     } else {
-      // Land enclosures — richer terrain per dino type
+      // ── RICH TERRAIN PER DINO TYPE ──
       var gc=enc.key==='ptero'?'#06101c':
-             enc.key==='raptor'||enc.key==='diloph'?'#111a08':
-             enc.key==='trex'||enc.key==='spino'?'#0e1a08':
-             enc.key==='mosaw'?'#0a1e2a':'#142a0a';
+             enc.key==='raptor'?'#0e1806':
+             enc.key==='diloph'?'#0c1a10':
+             enc.key==='trex'||enc.key==='spino'?'#0a1606':
+             enc.key==='carno'?'#120a04':
+             enc.key==='trice'||enc.key==='brachio'?'#102808':
+             enc.key==='ankylo'?'#0e1c0a':
+             enc.key==='stego'||enc.key==='para'||enc.key==='galli'?'#122a08':
+             enc.key==='pachy'?'#141008':
+             enc.key==='compy'?'#0e1a06':'#0e1a08';
       ctx.fillStyle=gc;ctx.fillRect(px,py,pw,ph);
 
-      // Ground texture — scattered patches
+      // Ground patches (stable random)
       var patchCols=enc.key==='ptero'?['rgba(10,30,60,0.5)','rgba(15,40,70,0.3)']:
-                    enc.key==='mosaw'?['rgba(10,40,60,0.4)','rgba(15,50,70,0.3)']:
-                    ['rgba(20,50,8,0.45)','rgba(30,70,10,0.3)','rgba(15,40,5,0.35)'];
-      for(var g=0;g<enc.sz*4;g++){
-        var gx2=px+3+((enc.bx*17+enc.by*13+g*31)%(pw-8));
-        var gy2=py+3+((enc.bx*11+enc.by*19+g*23)%(ph-8));
-        var gsz=3+((enc.bx+enc.by+g)%4);
+                    enc.key==='carno'||enc.key==='trex'?['rgba(40,15,5,0.5)','rgba(30,10,3,0.35)','rgba(50,20,8,0.25)']:
+                    ['rgba(20,50,8,0.5)','rgba(30,70,10,0.35)','rgba(15,40,5,0.3)'];
+      for(var g=0;g<enc.sz*5;g++){
+        var gx3=px+3+((enc.bx*17+enc.by*13+g*31)%(pw-8));
+        var gy3=py+3+((enc.bx*11+enc.by*19+g*23)%(ph-8));
+        var gsz2=2+((enc.bx+enc.by+g)%5);
         ctx.fillStyle=patchCols[(enc.bx+g)%patchCols.length];
-        ctx.fillRect(gx2,gy2,gsz,gsz);
+        ctx.fillRect(gx3,gy3,gsz2,gsz2);
       }
-      // Trees / boulders for large enclosures
+
+      // ── PER-DINO TERRAIN FEATURES ──
+      if(enc.key==='trex'||enc.key==='spino'||enc.key==='carno'){
+        // Predator: bones and blood patches
+        ctx.fillStyle='rgba(180,160,120,0.5)';
+        ctx.fillRect(px+pw*0.15,py+ph*0.7,8,3);ctx.fillRect(px+pw*0.17,py+ph*0.7-4,2,5); // bone
+        ctx.fillStyle='rgba(120,15,5,0.3)';
+        ctx.beginPath();ctx.arc(px+pw*0.7,py+ph*0.35,6,0,Math.PI*2);ctx.fill(); // blood patch
+        ctx.fillStyle='rgba(180,160,120,0.4)';
+        ctx.fillRect(px+pw*0.75,py+ph*0.65,6,2);ctx.fillRect(px+pw*0.78,py+ph*0.6,2,4);
+      } else if(enc.key==='brachio'||enc.key==='stego'||enc.key==='para'){
+        // Herbivore: lush grass tufts and flowers
+        ctx.fillStyle='rgba(40,120,15,0.5)';
+        for(var gf=0;gf<5;gf++){
+          var gfx=px+((enc.bx*23+gf*41)%(pw-10))+5;
+          var gfy=py+((enc.by*19+gf*37)%(ph-10))+5;
+          ctx.fillRect(gfx,gfy,1,6);ctx.fillRect(gfx-1,gfy+2,1,4);ctx.fillRect(gfx+1,gfy+3,1,3);
+        }
+        // Wildflowers
+        var flcols2=['#ffdd44','#ff8844','#44ddff'];
+        for(var ff=0;ff<3;ff++){
+          var ffx=px+((enc.bx*31+ff*53)%(pw-12))+6;
+          var ffy=py+((enc.by*29+ff*47)%(ph-12))+6;
+          ctx.fillStyle=flcols2[ff%3];ctx.fillRect(ffx,ffy,2,2);
+        }
+      } else if(enc.key==='raptor'||enc.key==='diloph'){
+        // Cunning predators: claw marks on ground
+        ctx.strokeStyle='rgba(80,50,20,0.5)';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(px+pw*0.3,py+ph*0.4);ctx.lineTo(px+pw*0.38,py+ph*0.5);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(px+pw*0.32,py+ph*0.38);ctx.lineTo(px+pw*0.40,py+ph*0.48);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(px+pw*0.28,py+ph*0.42);ctx.lineTo(px+pw*0.36,py+ph*0.52);ctx.stroke();
+        ctx.lineWidth=1;
+      } else if(enc.key==='ankylo'){
+        // Rocky terrain
+        ctx.fillStyle='rgba(80,90,60,0.6)';
+        ctx.beginPath();ctx.arc(px+pw*0.25,py+ph*0.6,7,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(px+pw*0.72,py+ph*0.25,5,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(100,110,75,0.4)';
+        ctx.beginPath();ctx.arc(px+pw*0.24,py+ph*0.59,5,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(px+pw*0.71,py+ph*0.24,3,0,Math.PI*2);ctx.fill();
+      } else if(enc.key==='trice'){
+        // Beaten paths from charging
+        ctx.strokeStyle='rgba(60,40,20,0.4)';ctx.lineWidth=2;
+        ctx.beginPath();ctx.moveTo(px+pw*0.1,py+ph*0.5);ctx.bezierCurveTo(px+pw*0.4,py+ph*0.3,px+pw*0.6,py+ph*0.7,px+pw*0.9,py+ph*0.5);ctx.stroke();
+        ctx.lineWidth=1;
+      } else if(enc.key==='ptero'){
+        // Rocky perches
+        ctx.fillStyle='rgba(50,60,80,0.7)';
+        ctx.beginPath();ctx.arc(px+pw*0.2,py+ph*0.2,8,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(px+pw*0.8,py+ph*0.75,6,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(80,95,110,0.5)';
+        ctx.beginPath();ctx.arc(px+pw*0.19,py+ph*0.18,5,0,Math.PI*2);ctx.fill();
+      } else if(enc.key==='compy'){
+        // Leaf litter and tiny footprints
+        ctx.fillStyle='rgba(60,90,20,0.45)';
+        for(var cl=0;cl<8;cl++){
+          var clx=px+((enc.bx*13+cl*29)%(pw-8))+4;
+          var cly=py+((enc.by*17+cl*23)%(ph-8))+4;
+          ctx.save();ctx.translate(clx,cly);ctx.rotate(cl*0.8);ctx.fillRect(-3,-1,6,2);ctx.restore();
+        }
+      } else if(enc.key==='galli'){
+        // Trampled grass and dust clouds
+        ctx.fillStyle='rgba(180,150,80,0.2)';
+        ctx.beginPath();ctx.arc(px+pw*0.5,py+ph*0.5,pw*0.25,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(180,150,80,0.12)';
+        ctx.beginPath();ctx.arc(px+pw*0.3,py+ph*0.7,pw*0.15,0,Math.PI*2);ctx.fill();
+      }
+
+      // Trees / features for large enclosures
       if(enc.sz>=3){
-        ctx.fillStyle=enc.key==='ptero'?'#0a1828':'#0e2808';
-        ctx.beginPath();ctx.arc(px+pw*0.12,py+ph*0.12,10,0,Math.PI*2);ctx.fill();
-        ctx.beginPath();ctx.arc(px+pw*0.88,py+ph*0.82,9,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle=enc.key==='ptero'?'#0e2040':'#122e0a';
-        ctx.beginPath();ctx.arc(px+pw*0.12,py+ph*0.12,7,0,Math.PI*2);ctx.fill();
-        ctx.beginPath();ctx.arc(px+pw*0.88,py+ph*0.82,6,0,Math.PI*2);ctx.fill();
-        // Highlight
-        ctx.fillStyle='rgba(40,120,15,0.2)';
-        ctx.beginPath();ctx.arc(px+pw*0.11,py+ph*0.10,3,0,Math.PI*2);ctx.fill();
+        var tcol=enc.key==='ptero'?'#0a1828':'#0e2808';
+        var tcol2=enc.key==='ptero'?'#0e2040':'#122e0a';
+        var thl='rgba(40,120,15,0.2)';
+        // Tree 1
+        ctx.fillStyle='#0a1806';ctx.beginPath();ctx.arc(px+pw*0.12,py+ph*0.12,11,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=tcol;ctx.beginPath();ctx.arc(px+pw*0.12,py+ph*0.12,10,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=tcol2;ctx.beginPath();ctx.arc(px+pw*0.12,py+ph*0.12,7,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=thl;ctx.beginPath();ctx.arc(px+pw*0.10,py+ph*0.10,3,0,Math.PI*2);ctx.fill();
+        // Tree 2
+        ctx.fillStyle='#0a1806';ctx.beginPath();ctx.arc(px+pw*0.88,py+ph*0.82,10,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=tcol;ctx.beginPath();ctx.arc(px+pw*0.88,py+ph*0.82,9,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=tcol2;ctx.beginPath();ctx.arc(px+pw*0.88,py+ph*0.82,6,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=thl;ctx.beginPath();ctx.arc(px+pw*0.86,py+ph*0.80,3,0,Math.PI*2);ctx.fill();
+        // Tree trunk
+        ctx.fillStyle='#3a1a08';ctx.fillRect(px+pw*0.12-1,py+ph*0.12,3,8);
+        ctx.fillRect(px+pw*0.88-1,py+ph*0.82,3,6);
+      } else if(enc.sz===2){
+        // Smaller bush for 2x2
+        var bcol=enc.key==='ptero'?'#0a1828':'#0e2808';
+        ctx.fillStyle='#0a1806';ctx.beginPath();ctx.arc(px+pw*0.15,py+ph*0.15,7,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=bcol;ctx.beginPath();ctx.arc(px+pw*0.15,py+ph*0.15,6,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(40,120,15,0.2)';ctx.beginPath();ctx.arc(px+pw*0.13,py+ph*0.13,2,0,Math.PI*2);ctx.fill();
       }
     }
     var danger=G.sec<0;
@@ -1136,7 +1223,7 @@ function drawEnclosures(){
         if(facingLeft)ctx.scale(-1,1);
         ctx.fillStyle='rgba(0,0,0,0.25)';
         ctx.save();ctx.scale(1,0.4);ctx.beginPath();ctx.arc(0,15,10,0,Math.PI*2);ctx.restore();ctx.fill();
-        drawDinoShape(enc.key,enc.sz);
+        drawDinoShape(enc.key,enc.sz,Date.now()/1000);
         ctx.restore();
       }
     }
@@ -1221,191 +1308,144 @@ function drawMultiBuildings(){
   }
 }
 
-function drawDinoShape(key,sz){
+function drawDinoShape(key,sz,wt){
+  wt=wt||0;
   var s=sz===3?1.4:1.0;
   ctx.save();ctx.scale(s,s);
+  // Animation variables
+  var breath=Math.sin(wt*1.8)*1.2;
+  var tailWag=Math.sin(wt*2.5)*3;
+  var headBob=Math.sin(wt*1.4+1)*1.5;
+  var stride=Math.sin(wt*3)*2;
   if(key==='trex'){
-    ctx.fillStyle='#4a6820';ctx.fillRect(-6,-8,14,10);
-    ctx.fillStyle='#3a5818';ctx.fillRect(8,-10,8,8);ctx.fillRect(-12,-4,8,4);
-    ctx.fillStyle='#ff2200';ctx.fillRect(13,-8,2,2);
-    ctx.fillStyle='#2a4810';ctx.fillRect(-3,2,4,6);ctx.fillRect(4,2,4,6);
-    ctx.fillStyle='#5a7828';ctx.fillRect(6,-6,2,3);
+    ctx.fillStyle='#4a6820';ctx.fillRect(-6,-8+breath,14,10);
+    ctx.fillStyle='#3a5818';
+    ctx.save();ctx.translate(-6,-4+breath);ctx.rotate(tailWag*0.04);ctx.fillRect(-6,0,8,4);ctx.restore();
+    ctx.save();ctx.translate(8,-9+breath+headBob);ctx.fillRect(0,-1,8,8);ctx.fillStyle='#ff2200';ctx.fillRect(6,-1,2,2);ctx.fillStyle='#2a4010';ctx.fillRect(0,6,7,2);ctx.restore();
+    ctx.fillStyle='#5a7828';ctx.fillRect(6,-5+breath,2,3);
+    ctx.fillStyle='#2a4810';ctx.fillRect(-3,2+breath+stride,4,6);ctx.fillRect(4,2+breath-stride,4,6);
+    ctx.fillStyle='rgba(0,0,0,0.15)';ctx.fillRect(-5,-2+breath,12,3);
   } else if(key==='raptor'){
-    ctx.fillStyle='#7a5828';ctx.fillRect(-4,-6,10,7);ctx.fillRect(6,-8,6,6);ctx.fillRect(-14,-3,11,3);
-    ctx.fillStyle='#ffff00';ctx.fillRect(9,-7,2,2);
-    ctx.fillStyle='#5a3818';ctx.fillRect(0,1,3,6);ctx.fillRect(5,1,3,6);
-    ctx.fillStyle='#3a2010';ctx.fillRect(3,5,2,3);
+    var rs=Math.sin(wt*4)*2;
+    ctx.fillStyle='#7a5828';ctx.fillRect(-4,-6+breath,10,7);
+    ctx.save();ctx.translate(-4,-3+breath);ctx.rotate(tailWag*0.05);ctx.fillStyle='#5a3818';ctx.fillRect(-11,0,11,3);ctx.restore();
+    ctx.save();ctx.translate(6,-7+breath+headBob);ctx.fillStyle='#8a6030';ctx.fillRect(0,-1,6,6);ctx.fillStyle='#ffff00';ctx.fillRect(4,-1,2,2);ctx.fillStyle='#3a2010';ctx.fillRect(0,4,5,2);ctx.restore();
+    ctx.fillStyle='#5a3818';ctx.fillRect(0,1+breath+rs,3,6);ctx.fillRect(4,1+breath-rs,3,6);
+    ctx.fillStyle='#222';ctx.fillRect(3,6+breath+rs,2,3);
   } else if(key==='brachio'){
-    ctx.fillStyle='#5a7830';ctx.fillRect(-8,0,16,8);ctx.fillRect(-12,2,5,4);ctx.fillRect(2,-18,4,20);ctx.fillRect(0,-22,8,6);
-    ctx.fillStyle='#3a5820';ctx.fillRect(-8,0,16,4);
-    ctx.fillStyle='#ff4400';ctx.fillRect(6,-20,2,2);
-    ctx.fillStyle='#4a6828';ctx.fillRect(-7,6,4,6);ctx.fillRect(-1,6,4,6);ctx.fillRect(5,6,4,6);
+    var ns=Math.sin(wt*1.2)*2;
+    ctx.fillStyle='#5a7830';ctx.fillRect(-8,0+breath,16,8);ctx.fillStyle='#3a5820';ctx.fillRect(-8,0+breath,16,4);
+    ctx.save();ctx.translate(-8,2+breath);ctx.rotate(tailWag*0.03);ctx.fillStyle='#4a6828';ctx.fillRect(-5,0,5,4);ctx.restore();
+    ctx.save();ctx.translate(2+ns*0.3,-2+breath);ctx.rotate(ns*0.015);ctx.fillStyle='#5a7830';ctx.fillRect(0,-18,4,20);ctx.restore();
+    ctx.save();ctx.translate(2+ns,-20+breath+headBob);ctx.fillStyle='#6a8838';ctx.fillRect(0,-2,8,6);ctx.fillStyle='#ff4400';ctx.fillRect(6,-1,2,2);ctx.restore();
+    var bs=Math.sin(wt*2)*1.5;
+    ctx.fillStyle='#4a6828';ctx.fillRect(-7,6+breath,4,6+bs);ctx.fillRect(-1,6+breath,4,6-bs);ctx.fillRect(5,6+breath,4,6+bs);
   } else if(key==='spino'){
-    ctx.fillStyle='#3a6a20';ctx.fillRect(-6,-6,14,9);ctx.fillRect(8,-8,9,7);ctx.fillRect(-14,-3,9,3);
-    ctx.fillStyle='#cc3300';ctx.fillRect(-2,-16,3,11);ctx.fillRect(2,-14,3,9);ctx.fillRect(6,-12,3,7);
-    ctx.fillStyle='#ffff00';ctx.fillRect(14,-7,2,2);
-    ctx.fillStyle='#2a5010';ctx.fillRect(-3,3,4,6);ctx.fillRect(4,3,4,6);
+    ctx.fillStyle='#3a6a20';ctx.fillRect(-6,-6+breath,14,9);
+    ctx.save();ctx.translate(8,-7+breath+headBob*0.5);ctx.fillStyle='#4a7828';ctx.fillRect(0,0,9,7);ctx.fillStyle='#ffff00';ctx.fillRect(7,1,2,2);ctx.fillStyle='#2a4010';ctx.fillRect(0,5,8,2);ctx.restore();
+    ctx.save();ctx.translate(-6,-3+breath);ctx.rotate(tailWag*0.04);ctx.fillStyle='#2a5010';ctx.fillRect(-9,0,9,3);ctx.restore();
+    ctx.fillStyle='#cc3300';ctx.fillRect(-2,-16+breath,3,11);ctx.fillRect(2,-14+breath,3,9);ctx.fillRect(6,-12+breath,3,7);
+    ctx.fillStyle='rgba(255,100,50,0.3)';ctx.fillRect(-1,-15+breath,1,9);
+    var ss=Math.sin(wt*3)*2;
+    ctx.fillStyle='#2a5010';ctx.fillRect(-3,3+breath+ss,4,6);ctx.fillRect(3,3+breath-ss,4,6);
   } else if(key==='trice'){
-    ctx.fillStyle='#4a7028';ctx.fillRect(-6,-4,14,8);ctx.fillRect(8,-6,8,7);ctx.fillRect(-12,-2,7,4);
-    ctx.fillStyle='#cc4422';ctx.fillRect(8,-10,10,8);
-    ctx.fillStyle='#ddddcc';ctx.fillRect(14,-12,2,4);ctx.fillRect(11,-11,2,3);ctx.fillRect(8,-11,2,3);
-    ctx.fillStyle='#3a5820';ctx.fillRect(-5,4,4,5);ctx.fillRect(2,4,4,5);ctx.fillRect(-3,4,4,5);
+    var ts2=Math.sin(wt*2.5)*1.5;
+    ctx.fillStyle='#4a7028';ctx.fillRect(-6,-4+breath,14,8);
+    ctx.save();ctx.translate(8,-5+breath+headBob);ctx.fillStyle='#4a7028';ctx.fillRect(0,-1,8,7);ctx.fillStyle='#cc4422';ctx.fillRect(0,-5,10,8);ctx.fillStyle='#ddddcc';ctx.fillRect(6,-7,2,4);ctx.fillRect(8,-6,2,3);ctx.fillRect(3,-6,2,3);ctx.fillStyle='#ffff88';ctx.fillRect(6,0,2,2);ctx.restore();
+    ctx.save();ctx.translate(-6,-2+breath);ctx.rotate(tailWag*0.03);ctx.fillStyle='#3a5820';ctx.fillRect(-6,0,6,4);ctx.restore();
+    ctx.fillStyle='#3a5820';ctx.fillRect(-5,4+breath+ts2,3,5);ctx.fillRect(-1,4+breath-ts2,3,5);ctx.fillRect(3,4+breath+ts2,3,5);
   } else if(key==='ptero'){
-    ctx.fillStyle='#2a3a6a';ctx.fillRect(-4,-3,8,5);ctx.fillRect(4,-5,7,4);ctx.fillRect(8,-7,2,3);
-    ctx.fillStyle='#1a2a5a';ctx.fillRect(-16,-2,13,4);ctx.fillRect(8,-2,10,4);
-    ctx.fillStyle='rgba(80,120,200,0.3)';ctx.fillRect(-16,-2,13,4);ctx.fillRect(8,-2,10,4);
-    ctx.fillStyle='#ffff88';ctx.fillRect(8,-4,2,2);
+    var wf=Math.sin(wt*3)*4;
+    ctx.fillStyle='#2a3a6a';ctx.fillRect(-4,-3+breath,8,5);ctx.fillRect(4,-5+breath,7,4);ctx.fillRect(8,-7+breath,2,3);
+    ctx.fillStyle='#1a2a5a';ctx.fillRect(-16,-2+breath+wf,13,4);ctx.fillRect(8,-2+breath-wf,10,4);
+    ctx.fillStyle='rgba(80,120,200,0.35)';ctx.fillRect(-16,-2+breath+wf,13,4);ctx.fillRect(8,-2+breath-wf,10,4);
+    ctx.fillStyle='#ffff88';ctx.fillRect(8,-4+breath,2,2);
   } else if(key==='ankylo'){
-    ctx.fillStyle='#4a5a28';ctx.fillRect(-8,-3,16,7);ctx.fillRect(8,-5,6,5);
-    ctx.fillStyle='#6a7a38';
-    for(var ap=-6;ap<8;ap+=4)ctx.fillRect(ap,-5,3,3);
-    ctx.fillStyle='#3a4a18';ctx.fillRect(-14,-1,7,4);ctx.fillRect(-16,0,4,4);
-    ctx.fillStyle='#ffff00';ctx.fillRect(11,-4,2,2);
-    ctx.fillStyle='#2a3a10';ctx.fillRect(-7,4,3,4);ctx.fillRect(-1,4,3,4);ctx.fillRect(4,4,3,4);ctx.fillRect(8,4,3,4);
+    var as2=Math.sin(wt*2)*1;
+    ctx.fillStyle='#4a5a28';ctx.fillRect(-8,-3+breath,16,7);
+    ctx.save();ctx.translate(8,-4+breath+headBob*0.5);ctx.fillStyle='#5a6a30';ctx.fillRect(0,0,6,5);ctx.fillStyle='#ffff00';ctx.fillRect(4,1,2,2);ctx.restore();
+    ctx.fillStyle='#6a7a38';for(var ap=-6;ap<8;ap+=4)ctx.fillRect(ap,-5+breath,3,3);
+    ctx.fillStyle='rgba(150,180,60,0.3)';for(var ap2=-6;ap2<8;ap2+=4)ctx.fillRect(ap2,-5+breath,1,2);
+    ctx.save();ctx.translate(-8,-1+breath);ctx.rotate(tailWag*0.05);ctx.fillStyle='#3a4a18';ctx.fillRect(-8,0,8,4);ctx.fillStyle='#4a5a28';ctx.fillRect(-10,-1,5,6);ctx.restore();
+    ctx.fillStyle='#2a3a10';ctx.fillRect(-7,4+breath+as2,3,4);ctx.fillRect(-1,4+breath-as2,3,4);ctx.fillRect(4,4+breath+as2,3,4);ctx.fillRect(8,4+breath-as2,3,4);
   } else if(key==='diloph'){
-    ctx.fillStyle='#6a4a28';ctx.fillRect(-4,-5,10,7);ctx.fillRect(6,-7,7,6);ctx.fillRect(-12,-2,9,3);
-    ctx.fillStyle='#cc3300';ctx.fillRect(7,-11,3,5);ctx.fillRect(10,-10,3,4);
-    ctx.fillStyle='#ffff00';ctx.fillRect(10,-6,2,2);
-    ctx.fillStyle='#4a3018';ctx.fillRect(0,2,3,5);ctx.fillRect(4,2,3,5);
+    var ds=Math.sin(wt*3.5)*2;
+    ctx.fillStyle='#6a4a28';ctx.fillRect(-4,-5+breath,10,7);
+    ctx.save();ctx.translate(-4,-2+breath);ctx.rotate(tailWag*0.05);ctx.fillStyle='#4a3018';ctx.fillRect(-9,0,9,3);ctx.restore();
+    ctx.save();ctx.translate(6,-6+breath+headBob);ctx.fillStyle='#7a5830';ctx.fillRect(0,-1,7,6);ctx.fillStyle='#cc3300';ctx.fillRect(1,-5,3,5);ctx.fillRect(4,-4,3,4);ctx.fillStyle='#ffff00';ctx.fillRect(4,0,2,2);ctx.restore();
+    ctx.fillStyle='#4a3018';ctx.fillRect(0,2+breath+ds,3,5);ctx.fillRect(4,2+breath-ds,3,5);
   } else if(key==='mosaw'){
-    ctx.fillStyle='#1a4a6a';ctx.fillRect(-14,-3,24,6);ctx.fillRect(10,-5,8,5);ctx.fillRect(-18,0,5,3);ctx.fillRect(-16,-4,4,3);
-    ctx.fillStyle='#0a3a5a';ctx.fillRect(-6,3,5,4);ctx.fillRect(2,3,5,4);ctx.fillRect(-6,-7,5,4);ctx.fillRect(2,-7,5,4);
-    ctx.fillStyle='#ffff00';ctx.fillRect(14,-4,2,2);
-    ctx.strokeStyle='rgba(0,180,255,0.4)';ctx.lineWidth=1;
-    ctx.beginPath();ctx.arc(0,8,12,0,Math.PI);ctx.stroke();ctx.lineWidth=1;
+    var sw=Math.sin(wt*2)*3;
+    ctx.fillStyle='#1a4a6a';ctx.fillRect(-14,-3+sw,24,6);ctx.fillRect(10,-5+sw,8,5);
+    ctx.save();ctx.translate(-14,-1+sw);ctx.rotate(tailWag*0.06);ctx.fillStyle='#0a3a5a';ctx.fillRect(-6,0,6,3);ctx.fillRect(-4,-4,4,3);ctx.restore();
+    ctx.fillStyle='#0a3a5a';ctx.fillRect(-6,3+sw,5,4);ctx.fillRect(2,3+sw,5,4);ctx.fillRect(-6,-7+sw,5,4);ctx.fillRect(2,-7+sw,5,4);
+    ctx.fillStyle='#ffff00';ctx.fillRect(14,-4+sw,2,2);
+    ctx.strokeStyle='rgba(0,180,255,0.5)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(0,8+sw*0.5,12,0,Math.PI);ctx.stroke();
+    ctx.beginPath();ctx.arc(-6,10+sw*0.3,6,0,Math.PI);ctx.stroke();ctx.lineWidth=1;
   } else if(key==='galli'){
-    // Gallimimus: long neck, ostrich-like, fast runner posture
-    ctx.fillStyle='#7a8a40';ctx.fillRect(-4,-5,9,7);   // body
-    ctx.fillStyle='#6a7a30';ctx.fillRect(5,-8,4,5);    // neck
-    ctx.fillStyle='#5a6a28';ctx.fillRect(7,-11,5,4);   // small head
-    ctx.fillStyle='#ffff88';ctx.fillRect(10,-10,2,1);  // eye
-    ctx.fillStyle='#4a5a18';ctx.fillRect(-12,-2,9,3);  // tail
-    // legs - running pose
-    ctx.fillStyle='#6a7a30';ctx.fillRect(-2,2,3,7);ctx.fillRect(3,2,3,5);
-    ctx.fillStyle='#3a4a10';ctx.fillRect(-2,7,3,3);ctx.fillRect(3,5,3,3);
-    // arm stubs
-    ctx.fillStyle='#8a9a48';ctx.fillRect(1,-4,4,3);
+    var gs=Math.sin(wt*5)*3;
+    ctx.fillStyle='#7a8a40';ctx.fillRect(-4,-5+breath,9,7);
+    ctx.fillStyle='#6a7a30';ctx.fillRect(5,-8+breath+headBob,4,5);
+    ctx.save();ctx.translate(7,-10+breath+headBob);ctx.rotate(headBob*0.04);ctx.fillStyle='#5a6a28';ctx.fillRect(0,0,5,4);ctx.fillStyle='#ffff88';ctx.fillRect(3,0,2,1);ctx.restore();
+    ctx.save();ctx.translate(-4,-2+breath);ctx.rotate(tailWag*0.05);ctx.fillStyle='#4a5a18';ctx.fillRect(-9,0,9,3);ctx.restore();
+    ctx.fillStyle='#6a7a30';ctx.fillRect(-2,2+breath+gs,3,7);ctx.fillRect(3,2+breath-gs,3,5);
+    ctx.fillStyle='#8a9a48';ctx.fillRect(1,-4+breath,4,3);
   } else if(key==='para'){
-    // Parasaurolophus: duck-bill, tall cranial crest
-    ctx.fillStyle='#5a7840';ctx.fillRect(-6,-4,13,8);  // body
-    ctx.fillStyle='#4a6830';ctx.fillRect(7,-6,7,6);    // head/snout
-    // Iconic backward crest
-    ctx.fillStyle='#cc4422';ctx.fillRect(4,-13,3,10);  // crest pole
-    ctx.fillStyle='#dd5533';ctx.fillRect(-4,-14,10,3); // crest tip
-    ctx.fillStyle='#ffff88';ctx.fillRect(12,-5,2,2);   // eye
-    ctx.fillStyle='#3a5820';ctx.fillRect(-14,-2,9,4);  // tail
-    // 4 legs
-    ctx.fillStyle='#4a6830';ctx.fillRect(-4,4,3,6);ctx.fillRect(1,4,3,6);
-    ctx.fillStyle='#2a4010';ctx.fillRect(-4,8,3,3);ctx.fillRect(1,8,3,3);
+    var ps=Math.sin(wt*2.5)*1.5;
+    ctx.fillStyle='#5a7840';ctx.fillRect(-6,-4+breath,13,8);
+    ctx.save();ctx.translate(7,-5+breath+headBob);ctx.rotate(headBob*0.03);ctx.fillStyle='#4a6830';ctx.fillRect(0,0,7,6);ctx.fillStyle='#cc4422';ctx.fillRect(2,-7,3,9);ctx.fillStyle='#dd5533';ctx.fillRect(-2,-8,8,3);ctx.fillStyle='#ffff88';ctx.fillRect(5,1,2,2);ctx.restore();
+    ctx.save();ctx.translate(-6,-2+breath);ctx.rotate(tailWag*0.03);ctx.fillStyle='#3a5820';ctx.fillRect(-9,0,9,4);ctx.restore();
+    ctx.fillStyle='#4a6830';ctx.fillRect(-4,4+breath+ps,3,6);ctx.fillRect(1,4+breath-ps,3,6);
+    ctx.fillStyle='#2a4010';ctx.fillRect(-4,8+breath+ps,3,3);ctx.fillRect(1,8+breath-ps,3,3);
   } else if(key==='stego'){
-    // Stegosauro: low wide body, iconic back plates, spiked tail
-    ctx.fillStyle='#4a6030';ctx.fillRect(-9,-2,18,8);  // body
-    ctx.fillStyle='#3a5020';ctx.fillRect(9,-4,7,5);    // head
-    ctx.fillStyle='#ffff88';ctx.fillRect(14,-3,2,2);   // eye
-    // Iconic back plates (alternating)
+    var sts=Math.sin(wt*2)*1.5;
+    ctx.fillStyle='#4a6030';ctx.fillRect(-9,-2+breath,18,8);
+    ctx.save();ctx.translate(9,-3+breath+headBob*0.5);ctx.fillStyle='#3a5020';ctx.fillRect(0,-1,7,5);ctx.fillStyle='#ffff88';ctx.fillRect(5,0,2,2);ctx.restore();
     ctx.fillStyle='#cc6622';
     var plateX=[-6,-2,2,6];
     for(var pp=0;pp<plateX.length;pp++){
-      var ph2=pp%2===0?10:8;
-      ctx.fillRect(plateX[pp],-2-ph2,4,ph2);
+      var ph2=pp%2===0?10:8;var pr=Math.sin(wt*1.8+pp*0.8)*1.5;
+      ctx.save();ctx.translate(plateX[pp],-2+breath);ctx.rotate(pr*0.03);
+      ctx.fillRect(0,-ph2,4,ph2);ctx.fillStyle='rgba(220,100,30,0.4)';ctx.fillRect(1,-ph2+1,2,ph2-2);ctx.fillStyle='#cc6622';ctx.restore();
     }
-    // Tail spikes
-    ctx.fillStyle='#aaaaaa';
-    ctx.fillRect(-12,1,4,3);ctx.fillRect(-14,-2,3,3);
-    // 4 stubby legs
-    ctx.fillStyle='#3a5020';
-    ctx.fillRect(-6,6,4,5);ctx.fillRect(-1,6,4,5);ctx.fillRect(3,6,4,5);
-    ctx.fillStyle='#2a3810';
-    ctx.fillRect(-6,9,4,2);ctx.fillRect(-1,9,4,2);ctx.fillRect(3,9,4,2);
+    ctx.save();ctx.translate(-9,0+breath);ctx.rotate(tailWag*0.04);ctx.fillStyle='#aaaaaa';ctx.fillRect(-4,0,4,3);ctx.fillRect(-6,-3,3,3);ctx.restore();
+    ctx.fillStyle='#3a5020';ctx.fillRect(-6,6+breath+sts,4,5);ctx.fillRect(-1,6+breath-sts,4,5);ctx.fillRect(4,6+breath+sts,4,5);
   } else if(key==='carno'){
-    // Carnotaurus: muscular build, distinctive red horns, short arms, powerful legs
-    ctx.fillStyle='#5a1a08'; ctx.fillRect(-6,-6,14,9);  // body
-    ctx.fillStyle='#7a2a10'; ctx.fillRect(7,-8,7,7);    // head
-    ctx.fillStyle='#3a0a04'; ctx.fillRect(-12,-3,7,4);  // tail
-    // Iconic horns (red)
-    ctx.fillStyle='#dd2200';
-    ctx.fillRect(10,-11,3,5); // horn L
-    ctx.fillRect(13,-10,3,4); // horn R
-    // Eye
-    ctx.fillStyle='#ffff00'; ctx.fillRect(12,-7,2,2);
-    // Tiny vestigial arms
-    ctx.fillStyle='#4a1208'; ctx.fillRect(5,-3,3,3);
-    // Powerful legs
-    ctx.fillStyle='#3a0a04';
-    ctx.fillRect(-3,3,4,7); ctx.fillRect(3,3,4,7);
-    // Claws
-    ctx.fillStyle='#222'; ctx.fillRect(-3,9,2,2); ctx.fillRect(3,9,2,2);
-    // Texture stripes on body
-    ctx.fillStyle='rgba(0,0,0,0.25)';
-    ctx.fillRect(-4,-4,2,7); ctx.fillRect(0,-5,2,8);
-
+    var cs2=Math.sin(wt*3.5)*2;
+    ctx.fillStyle='#5a1a08';ctx.fillRect(-6,-6+breath,14,9);
+    ctx.save();ctx.translate(7,-7+breath+headBob);ctx.rotate(headBob*0.04);ctx.fillStyle='#6a2010';ctx.fillRect(0,-1,7,7);ctx.fillStyle='#dd2200';ctx.fillRect(2,-5,3,5);ctx.fillRect(5,-4,3,4);ctx.fillStyle='#ffff00';ctx.fillRect(5,0,2,2);ctx.fillStyle='#3a0a04';ctx.fillRect(0,5,6,2);ctx.restore();
+    ctx.save();ctx.translate(-6,-3+breath);ctx.rotate(tailWag*0.05);ctx.fillStyle='#3a0a04';ctx.fillRect(-7,0,7,4);ctx.restore();
+    ctx.fillStyle='#4a1208';ctx.fillRect(5,-3+breath,3,3);
+    ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(-4,-4+breath,2,7);ctx.fillRect(0,-5+breath,2,8);
+    ctx.fillStyle='#3a0a04';ctx.fillRect(-3,3+breath+cs2,4,7);ctx.fillRect(3,3+breath-cs2,4,7);
   } else if(key==='bary'){
-    // Baryonyx: long crocodile-like snout, semi-aquatic build, fin crest
-    ctx.fillStyle='#2a4050'; ctx.fillRect(-7,-4,16,8);  // body
-    ctx.fillStyle='#1a3040'; ctx.fillRect(8,-5,10,6);   // long snout
-    ctx.fillStyle='#0a2030'; ctx.fillRect(-14,-1,8,4);  // tail
-    // Dorsal fin crest
-    ctx.fillStyle='#3a6070';
-    ctx.fillRect(-4,-10,3,7); ctx.fillRect(0,-8,3,5); ctx.fillRect(4,-6,3,4);
-    // Eye
-    ctx.fillStyle='#ffee00'; ctx.fillRect(13,-4,2,2);
-    // Teeth on snout
-    ctx.fillStyle='#eeeecc';
-    ctx.fillRect(9,-3,2,2); ctx.fillRect(12,-3,2,2); ctx.fillRect(15,-3,2,2);
-    // 4 short legs
-    ctx.fillStyle='#1a3040';
-    ctx.fillRect(-5,4,3,5); ctx.fillRect(-1,4,3,5); ctx.fillRect(3,4,3,5);
-    // Water ripple beneath (semi-aquatic)
-    ctx.strokeStyle='rgba(0,160,220,0.4)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.arc(0,10,10,0,Math.PI); ctx.stroke(); ctx.lineWidth=1;
-    // Claw on thumb (Baryonyx's signature)
-    ctx.fillStyle='#aaccdd'; ctx.fillRect(-6,7,2,4);
-
+    var bys=Math.sin(wt*2.8)*1.5;
+    ctx.fillStyle='#2a4050';ctx.fillRect(-7,-4+breath,16,8);
+    ctx.save();ctx.translate(8,-4+breath+headBob);ctx.rotate(headBob*0.025);ctx.fillStyle='#1a3040';ctx.fillRect(0,-1,10,6);ctx.fillStyle='#3a6070';ctx.fillRect(-2,-9,3,6);ctx.fillRect(2,-7,3,4);ctx.fillRect(5,-5,3,3);ctx.fillStyle='#ffee00';ctx.fillRect(8,0,2,2);ctx.fillStyle='#eeeecc';ctx.fillRect(2,4,2,2);ctx.fillRect(5,4,2,2);ctx.fillRect(8,4,2,2);ctx.restore();
+    ctx.save();ctx.translate(-7,-1+breath);ctx.rotate(tailWag*0.05);ctx.fillStyle='#1a3040';ctx.fillRect(-7,0,7,4);ctx.restore();
+    ctx.fillStyle='rgba(0,160,220,0.3)';ctx.fillRect(-6,-7+breath,5,4);ctx.fillRect(2,-7+breath,5,4);
+    ctx.strokeStyle='rgba(0,160,220,0.5)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(0,9+breath,10,0,Math.PI);ctx.stroke();ctx.lineWidth=1;
+    ctx.fillStyle='#1a3040';ctx.fillRect(-5,4+breath+bys,3,5);ctx.fillRect(-1,4+breath-bys,3,5);ctx.fillRect(3,4+breath+bys,3,5);
   } else if(key==='pachy'){
-    // Pachycephalosaurus: domed skull, bipedal, stocky build
-    ctx.fillStyle='#5a4818'; ctx.fillRect(-5,-4,11,8);  // body
-    ctx.fillStyle='#7a6428'; ctx.fillRect(5,-6,7,6);    // neck+head
-    ctx.fillStyle='#3a2808'; ctx.fillRect(-10,-1,6,4);  // tail
-    // Iconic thick domed skull
-    ctx.fillStyle='#c8a030';
-    ctx.beginPath(); ctx.arc(10,-5,6,0,Math.PI*2); ctx.fill();
-    // Bony bumps on dome
-    ctx.fillStyle='#e0b840';
-    ctx.fillRect(7,-9,3,3); ctx.fillRect(11,-10,3,3); ctx.fillRect(14,-8,3,3);
-    // Eye
-    ctx.fillStyle='#ff4400'; ctx.fillRect(11,-6,2,2);
-    // Bipedal — two strong legs
-    ctx.fillStyle='#3a2808';
-    ctx.fillRect(-3,4,4,7); ctx.fillRect(3,4,4,7);
-    // Short arms
-    ctx.fillStyle='#4a3818'; ctx.fillRect(4,-1,3,4);
-    // Textured back
-    ctx.fillStyle='rgba(200,160,40,0.2)';
-    ctx.fillRect(-3,-2,3,6); ctx.fillRect(1,-3,3,7);
-
+    var pys=Math.sin(wt*3)*2;
+    ctx.fillStyle='#5a4818';ctx.fillRect(-5,-4+breath,11,8);
+    ctx.save();ctx.translate(5,-5+breath+headBob);ctx.rotate(headBob*0.05);ctx.fillStyle='#6a5820';ctx.fillRect(0,-1,7,6);ctx.fillStyle='#c8a030';ctx.beginPath();ctx.arc(5,-2,6,0,Math.PI*2);ctx.fill();ctx.fillStyle='#e0b840';ctx.fillRect(3,-6,3,3);ctx.fillRect(7,-5,3,3);ctx.fillRect(10,-3,3,3);ctx.fillStyle='#ff4400';ctx.fillRect(5,-1,2,2);ctx.restore();
+    ctx.save();ctx.translate(-5,-1+breath);ctx.rotate(tailWag*0.04);ctx.fillStyle='#3a2808';ctx.fillRect(-6,0,6,4);ctx.restore();
+    ctx.fillStyle='#3a2808';ctx.fillRect(-3,4+breath+pys,4,7);ctx.fillRect(3,4+breath-pys,4,7);
+    ctx.fillStyle='#4a3818';ctx.fillRect(4,-1+breath,3,4);
   } else if(key==='compy'){
-    // Compsognathus: tiny, lightweight, bird-like — drawn small, multiple per enclosure
-    var cs = sz===1 ? 0.55 : 0.7; // extra small
-    ctx.save(); ctx.scale(cs, cs);
-    ctx.fillStyle='#3a5010'; ctx.fillRect(-3,-4,8,6);   // body
-    ctx.fillStyle='#4a6818'; ctx.fillRect(4,-5,5,4);    // head
-    ctx.fillStyle='#2a3808'; ctx.fillRect(-8,-1,6,3);   // tail (long)
-    // Eye
-    ctx.fillStyle='#ffff00'; ctx.fillRect(7,-4,2,2);
-    // Long neck
-    ctx.fillStyle='#3a5818'; ctx.fillRect(3,-7,3,4);
-    // Bird-like legs (long and thin)
-    ctx.fillStyle='#2a3808';
-    ctx.fillRect(-1,2,2,6); ctx.fillRect(2,2,2,6);
-    // Tiny claws
-    ctx.fillStyle='#1a2004';
-    ctx.fillRect(-2,7,2,2); ctx.fillRect(2,7,2,2);
-    // Small arms
-    ctx.fillStyle='#3a5010'; ctx.fillRect(3,-2,2,3);
+    var tw=Math.sin(wt*6)*1.5;
+    ctx.save();ctx.scale(0.55,0.55);
+    ctx.fillStyle='#3a5010';ctx.fillRect(-3,-4+breath,8,6);
+    ctx.save();ctx.translate(4,-4+breath+tw);ctx.rotate(tw*0.06);ctx.fillStyle='#4a6818';ctx.fillRect(0,-1,5,4);ctx.fillStyle='#3a5818';ctx.fillRect(1,-4,3,4);ctx.fillStyle='#ffff00';ctx.fillRect(3,0,2,2);ctx.restore();
+    ctx.save();ctx.translate(-3,-1+breath);ctx.rotate(tailWag*0.1);ctx.fillStyle='#2a3808';ctx.fillRect(-7,0,7,3);ctx.restore();
+    var cst=Math.sin(wt*6)*3;
+    ctx.fillStyle='#2a3808';ctx.fillRect(-1,2+breath+cst,2,6);ctx.fillRect(2,2+breath-cst,2,6);
+    ctx.fillStyle='#3a5010';ctx.fillRect(3,-2+breath,2,3);
     ctx.restore();
-
   } else {
-    ctx.fillStyle='#4a6820';ctx.fillRect(-5,-5,10,8);ctx.fillRect(5,-7,6,6);ctx.fillRect(-10,-2,6,3);
+    ctx.fillStyle='#4a6820';ctx.fillRect(-5,-5+breath,10,8);ctx.fillRect(5,-7+breath,6,6);ctx.fillRect(-10,-2+breath,6,3);
   }
   ctx.restore();
 }
@@ -2955,6 +2995,7 @@ function drawSelectedTileRange(){
   var info=getBuildingRangeAt(selectedTileX,selectedTileY);
   if(info)drawBuildingRange(info);
 }
+function triggerBuildFlash(x,y,sz){buildFlash={x:x,y:y,sz:sz||1,start:performance.now()};}
 function drawBuildFlash(){
   if(!buildFlash)return;
   var elapsed=(performance.now()-buildFlash.start)/1000,dur=0.45;
@@ -3635,7 +3676,7 @@ function drawLooseDinos(){
     // Draw dino shape scaled up (scary)
     var sc=d.key==='trex'||d.key==='spino'?1.8:1.4;
     ctx.scale(sc,sc);
-    drawDinoShape(d.key,2);
+    drawDinoShape(d.key,2,Date.now()/1000);
     ctx.shadowBlur=0;
     ctx.restore();
     // RED circle indicator
