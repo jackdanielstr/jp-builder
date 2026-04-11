@@ -194,7 +194,7 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
   .tab { padding: 7px 0; font-size: 16px; }
 
   /* Panel body scrollabile */
-  #panel-body { padding: 3px 5px; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  #panel-body { padding: 3px 5px; flex: 1 1 0; min-height: 0; overflow-y: scroll; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; height: 0; }
 
   /* Build buttons */
   .bld-btn { padding: 7px 5px; margin-bottom: 3px; }
@@ -237,7 +237,7 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
 /* Landscape mobile: pannello a destra */
 @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
   body { flex-direction: column; }
-  #body { flex-direction: row; }
+  #body { flex-direction: row; overflow: hidden; }
   #panel {
     width: 175px !important;
     height: 100% !important;
@@ -247,14 +247,23 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
     border-left: 2px solid var(--border) !important;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
+    flex-shrink: 0;
   }
   #panel::before { display: none; }
-  #panel-tabs { flex-shrink: 0; }
-  #panel-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 3px 5px; }
+  #panel-tabs { flex-shrink: 0; min-height: 0; }
+  #panel-body {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 3px 5px;
+    height: 0; /* forces flex child to respect flex:1 properly on iOS */
+  }
   .tab { font-size: 13px; padding: 6px 1px; }
-  #log { height: 32px; min-height: 32px; padding: 2px 6px; border-top: 1px solid var(--border); overflow-y: auto; }
-  #info-card { display: flex !important; min-height: 0; padding: 4px 6px; }
+  #info-card { display: none !important; }
+  #log { height: 0; min-height: 0; padding: 0; border: none; overflow: hidden; }
   #bottom-bar { padding: 3px 5px; flex-shrink: 0; }
   #next-day-btn { padding: 7px; font-size: 6px; }
   #mini-canvas {
