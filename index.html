@@ -245,35 +245,38 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
     max-height: none !important;
     border-top: none !important;
     border-left: 2px solid var(--border) !important;
-    display: flex;
-    flex-direction: column;
-    overflow: visible;
-    flex-shrink: 0;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+    position: relative;
+    z-index: 10;
   }
   #panel::before { display: none; }
-  #panel-tabs { flex-shrink: 0; min-height: 0; }
+  #panel-tabs { flex-shrink: 0; }
   #panel-body {
-    flex: 1 1 0;
-    min-height: 0;
-    overflow-y: scroll;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    padding: 3px 5px;
-    height: 0; /* forces flex child to respect flex:1 properly on iOS */
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: 0 !important;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+    touch-action: pan-y !important;
+    padding: 3px 5px !important;
+    pointer-events: all !important;
   }
   .tab { font-size: 13px; padding: 6px 1px; }
   #info-card { display: none !important; }
-  #log { height: 0; min-height: 0; padding: 0; border: none; overflow: hidden; }
+  #log { height: 0 !important; min-height: 0 !important; padding: 0 !important; border: none !important; overflow: hidden !important; }
   #bottom-bar { padding: 3px 5px; flex-shrink: 0; }
   #next-day-btn { padding: 7px; font-size: 6px; }
   #mini-canvas {
-    top: auto !important;
-    bottom: 6px !important;
-    right: 6px !important;
-    left: auto !important;
-    width: 72px !important;
-    height: 54px !important;
+    top: auto !important; bottom: 6px !important;
+    right: 6px !important; left: auto !important;
+    width: 72px !important; height: 54px !important;
   }
+  /* Viewport must not capture panel touches */
+  #viewport { touch-action: pan-x pinch-zoom; }
 }
 #confirm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;align-items:center;justify-content:center;}
 #confirm-modal.show{display:flex;}
@@ -4019,13 +4022,17 @@ window.addEventListener('load',function(){initGame(true);});
   },{passive:false});
 })();
 
-// ── MOBILE: PANEL DRAG RESIZE ──
+// ── MOBILE: PANEL DRAG RESIZE (portrait only) ──
 (function(){
   var panel=document.getElementById('panel');
   var tabBar=document.getElementById('panel-tabs');
+  var panelBody=document.getElementById('panel-body');
   var dragging=false,startY2=0,startH2=0;
+
+  // Only allow drag in portrait mode
   tabBar.addEventListener('touchstart',function(e){
-    if(window.innerWidth>600)return;
+    if(window.innerWidth>600||window.innerWidth<window.innerHeight===false)return; // portrait only
+    if(window.innerWidth>=window.innerHeight)return; // skip landscape
     dragging=true;startY2=e.touches[0].clientY;startH2=panel.offsetHeight;
   },{passive:true});
   document.addEventListener('touchmove',function(e){
@@ -4037,6 +4044,12 @@ window.addEventListener('load',function(){initGame(true);});
     panel.style.maxHeight=newH+'px';
   },{passive:true});
   document.addEventListener('touchend',function(){dragging=false;});
+
+  // Prevent viewport touch handlers from swallowing panel-body scroll
+  if(panelBody){
+    panelBody.addEventListener('touchstart',function(e){e.stopPropagation();},{passive:true});
+    panelBody.addEventListener('touchmove',function(e){e.stopPropagation();},{passive:true});
+  }
 })();
 </script>
 <!-- GAME CONFIRM MODAL (mobile-safe, replaces confirm()) -->
