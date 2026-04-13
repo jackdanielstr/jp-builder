@@ -237,6 +237,29 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
 /* Landscape mobile: pannello a destra */
 @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
   body { flex-direction: column; }
+
+  /* Topbar compatta in landscape: tutto su una riga, niente wrap */
+  #topbar {
+    flex-wrap: nowrap !important;
+    padding: 2px 6px !important;
+    gap: 5px !important;
+    overflow: hidden;
+  }
+  #logo { display: none !important; }
+  #alert-bar { display: none !important; }
+  #weather-info { display: none !important; }
+  #v-stars { font-size: 9px !important; letter-spacing: 0 !important; }
+  .res .val { font-size: 10px !important; min-width: 20px !important; }
+  .res .lbl { font-size: 9px !important; }
+  #day-info { font-size: 6px !important; margin-left: 0 !important; white-space: nowrap; }
+  #menu-btn {
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+    font-size: 10px !important;
+    padding: 3px 8px !important;
+    white-space: nowrap;
+  }
+
   #body { flex-direction: row; overflow: hidden; }
   #panel {
     width: 175px !important;
@@ -268,24 +291,11 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
   .tab { font-size: 13px; padding: 6px 1px; }
   #info-card { display: none !important; }
   #log { height: 0 !important; min-height: 0 !important; padding: 0 !important; border: none !important; overflow: hidden !important; }
-  #bottom-bar {
-    padding: 3px 5px !important;
-    flex-shrink: 0 !important;
-    flex-grow: 0 !important;
-    width: 100% !important;
-    display: block !important;
-    overflow: visible !important;
-  }
-  #next-day-btn {
-    padding: 7px !important;
-    font-size: 6px !important;
-    width: 100% !important;
-    display: block !important;
-    box-sizing: border-box !important;
-  }
+  #bottom-bar { padding: 3px 5px; flex-shrink: 0; }
+  #next-day-btn { padding: 7px; font-size: 6px; }
   #mini-canvas {
     top: auto !important; bottom: 6px !important;
-    right: 185px !important; left: auto !important;
+    right: 6px !important; left: auto !important;
     width: 72px !important; height: 54px !important;
   }
   /* Viewport must not capture panel touches */
