@@ -234,21 +234,9 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
   .pause-menu-btn { width: 100%; max-width: 280px; padding: 14px; font-size: 9px; }
 }
 
-/* Landscape mobile: pannello a destra — rimosso max-height per coprire tutti gli iPhone */
-@media (max-width: 1366px) and (orientation: landscape) and (max-height: 600px) {
+/* Landscape mobile: pannello a destra */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
   body { flex-direction: column; }
-
-  /* Topbar compatta: tutto su una riga, no wrap */
-  #topbar { flex-wrap: nowrap !important; padding: 2px 6px !important; gap: 5px !important; }
-  #logo { display: none !important; }
-  #alert-bar { display: none !important; }
-  #weather-info { display: none !important; }
-  .res .val { font-size: 10px !important; min-width: 18px !important; }
-  .res .lbl { font-size: 9px !important; }
-  #day-info { font-size: 6px !important; white-space: nowrap; }
-  #v-stars { font-size: 9px !important; letter-spacing: 0 !important; }
-  #menu-btn { margin-left: auto !important; flex-shrink: 0 !important; font-size: 10px !important; padding: 3px 8px !important; white-space: nowrap; }
-
   #body { flex-direction: row; overflow: hidden; }
   #panel {
     width: 175px !important;
@@ -261,6 +249,8 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
     flex-direction: column !important;
     overflow: hidden !important;
     flex-shrink: 0 !important;
+    position: relative;
+    z-index: 10;
   }
   #panel::before { display: none; }
   #panel-tabs { flex-shrink: 0; }
@@ -278,13 +268,14 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
   .tab { font-size: 13px; padding: 6px 1px; }
   #info-card { display: none !important; }
   #log { height: 0 !important; min-height: 0 !important; padding: 0 !important; border: none !important; overflow: hidden !important; }
-  #bottom-bar { padding: 3px 5px !important; flex-shrink: 0 !important; }
-  #next-day-btn { padding: 7px !important; font-size: 6px !important; width: 100% !important; box-sizing: border-box !important; }
+  #bottom-bar { padding: 3px 5px; flex-shrink: 0; }
+  #next-day-btn { padding: 7px; font-size: 6px; }
   #mini-canvas {
     top: auto !important; bottom: 6px !important;
     right: 6px !important; left: auto !important;
     width: 72px !important; height: 54px !important;
   }
+  /* Viewport must not capture panel touches */
   #viewport { touch-action: pan-x pinch-zoom; }
 }
 #confirm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;align-items:center;justify-content:center;}
@@ -362,6 +353,10 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
           <button class="bld-btn" data-b="bary"><span class="bi">🦖</span><span class="bn">BARYONYX<span class="bc">$14,000</span></span></button>
           <button class="bld-btn" data-b="pachy"><span class="bi">🦕</span><span class="bn">PACHYCEFALO<span class="bc">$10,000</span></span></button>
           <button class="bld-btn" data-b="compy"><span class="bi">🦎</span><span class="bn">COMPSOGNATHUS<span class="bc">$4,000</span></span></button>
+          <button class="bld-btn" data-b="igua"><span class="bi">🦕</span><span class="bn">IGUANODONTE<span class="bc">$7,500</span></span></button>
+          <button class="bld-btn" data-b="allo"><span class="bi">🦖</span><span class="bn">ALLOSAURO<span class="bc">$19,000</span></span></button>
+          <button class="bld-btn" data-b="kentro"><span class="bi">🦕</span><span class="bn">KENTROSAURUS<span class="bc">$11,000</span></span></button>
+          <button class="bld-btn" data-b="cerato"><span class="bi">🦖</span><span class="bn">CERATOSAURUS<span class="bc">$13,500</span></span></button>
         </div>
         <div class="p-section">
           <div class="p-title">SERVIZI</div>
@@ -375,6 +370,10 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
           <button class="bld-btn" data-b="jeep"><span class="bi">🚙</span><span class="bn">TOUR JEEP<span class="bc">$9,000</span></span></button>
           <button class="bld-btn" data-b="ranger"><span class="bi">🪖</span><span class="bn">RANGER STAT.<span class="bc">$14,000</span></span></button>
           <button class="bld-btn" data-b="helipad"><span class="bi">🚁</span><span class="bn">ELIPORTO<span class="bc">$8,000</span></span></button>
+          <button class="bld-btn" data-b="voliera"><span class="bi">🐦</span><span class="bn">VOLIERA<span class="bc">$16,000</span></span></button>
+          <button class="bld-btn" data-b="vasca_m"><span class="bi">🌊</span><span class="bn">VASCA MOSASAURO<span class="bc">$30,000</span></span></button>
+          <button class="bld-btn" data-b="dna_lab"><span class="bi">🧫</span><span class="bn">LAB. DNA<span class="bc">$22,000</span></span></button>
+          <button class="bld-btn" data-b="emerge"><span class="bi">⚡</span><span class="bn">GEN. EMERGENZA<span class="bc">$18,000</span></span></button>
         </div>
         <div class="p-section">
           <div class="p-title">DECORAZIONI</div>
@@ -575,9 +574,11 @@ var T_EMPTY=0,T_JUNGLE=1,T_CLEAR=2,T_ROAD=3,
     T_GALLI=31,T_PARA=32,T_STEGO=33,
     T_RANGER=34,
     T_CARNO=35,T_BARY=36,T_PACHY=37,T_COMPY=38,
+    T_IGUA=39,T_ALLO=40,T_KENTRO=41,T_CERATO=42,
+    T_VOLIERA=43,T_VASCA_M=44,T_DNA_LAB=45,T_EMERGE=46,
     T_OCEAN=50; // non-buildable ocean border
 
-var DINO_MIN=T_RAPTOR, DINO_MAX=T_COMPY;
+var DINO_MIN=T_RAPTOR, DINO_MAX=T_CERATO;
 
 // ── STAFF SYSTEM ──
 // unlockBld: quale tile deve esistere in griglia per sbloccare il personaggio
@@ -786,6 +787,16 @@ var BD = {
   bary:     {id:T_BARY,   cost:14000, lbl:'Baryonyx',          icon:'🦖', pw:-3,  sec:-2, vis:45, sat:20, maint:280, rp:2, road:true,  sz:2, dino:'🦖', color:'#1a2a3a', danger:true},
   pachy:    {id:T_PACHY,  cost:10000, lbl:'Pachycephalosauro', icon:'🦕', pw:-2,  sec:2,  vis:30, sat:14, maint:200, rp:1, road:true,  sz:2, dino:'🦕', color:'#2a2010', danger:false},
   compy:    {id:T_COMPY,  cost:4000,  lbl:'Compsognathus',     icon:'🦎', pw:-1,  sec:0,  vis:15, sat:12, maint:80,  rp:1, road:true,  sz:1, dino:'🦎', color:'#1a2808', danger:false, herd:true},
+  // ── 4 nuovi dinosauri ──
+  igua:     {id:T_IGUA,  cost:7500,  lbl:'Iguanodonte',        icon:'🦕', pw:-2,  sec:1,  vis:22, sat:15, maint:130, rp:1, road:true,  sz:2, dino:'🦕', color:'#1e3a10', danger:false},
+  allo:     {id:T_ALLO,  cost:19000, lbl:'Allosauro',          icon:'🦖', pw:-4,  sec:-3, vis:65, sat:22, maint:380, rp:2, road:true,  sz:3, dino:'🦖', color:'#2a1a06', danger:true},
+  kentro:   {id:T_KENTRO,cost:11000, lbl:'Kentrosaurus',       icon:'🦕', pw:-2,  sec:2,  vis:32, sat:14, maint:170, rp:1, road:true,  sz:2, dino:'🦕', color:'#1c3820', danger:false},
+  cerato:   {id:T_CERATO,cost:13500, lbl:'Ceratosaurus',       icon:'🦖', pw:-3,  sec:-2, vis:48, sat:19, maint:260, rp:1, road:true,  sz:2, dino:'🦖', color:'#301008', danger:true},
+  // ── 4 nuovi edifici con meccaniche nuove ──
+  voliera:  {id:T_VOLIERA,cost:16000,lbl:'Voliera',            icon:'🐦', pw:-3,  sec:-1, vis:42, sat:18, maint:220, rp:2, road:true,  sz:0, bw:3, bh:2, aerialBonus:true},
+  vasca_m:  {id:T_VASCA_M,cost:30000,lbl:'Vasca Mosasauro',   icon:'🌊', pw:-5,  sec:-2, vis:90, sat:30, maint:500, rp:3, road:true,  sz:0, bw:3, bh:3, aquaticShow:true},
+  dna_lab:  {id:T_DNA_LAB,cost:22000,lbl:'Lab. DNA',          icon:'🧫', pw:-3,  sec:5,  vis:10, sat:8,  maint:300, rp:4, road:true,  sz:0, bw:2, bh:2, dnaSamples:true, sampleInterval:5},
+  emerge:   {id:T_EMERGE, cost:18000,lbl:'Generatore Emerg.', icon:'⚡', pw:0,   sec:3,  vis:0,  sat:0,  maint:200, rp:0, road:true,  sz:0, emergencyPower:true, emergencyDays:0},
 };
 
 var ID2K = {};
@@ -830,6 +841,14 @@ var TOOL_DESC = {
   bary:'Baryonyx. Semi-acquatico, caccia i pesci. Recinto con laghetto, genera RP grazie al suo DNA unico.',
   pachy:'Pachycephalosaurus. La testata d\'ariete del parco. Erbivoro che aumenta la sicurezza con la sua presenza intimidatoria.',
   compy:'Compsognathus. Branchetto di piccoli dino veloci. Economici, curiosi, adorati dai bambini. Generano RP.',
+  igua:'Iguanodonte. Erbivoro robusto, uno dei primi dinosauri scoperti. Sicuro e popolare con le famiglie.',
+  allo:'Allosauro. Predatore giurassico imponente. Quasi alla pari con il T-Rex in termini di attrazione e pericolosità.',
+  kentro:'Kentrosaurus. Parente dello Stegosauro, con spine acuminate. Aumenta la sicurezza percepita.',
+  cerato:'Ceratosaurus. Carnivoro con le corna. Alta attrazione, notevole pericolo. Genera RP grazie alla rarità.',
+  voliera:'Grande Voliera. Struttura 3×2. Ospita pterosauri liberi di volare — gli spettacoli aerei danno +15% visitatori giornalieri a tutto il parco.',
+  vasca_m:'Vasca del Mosasauro. Struttura 3×3. Spettacolo acquatico unico: l\'animale salta durante il giorno e aggiunge +20% visitatori globali. La stella del parco.',
+  dna_lab:'Laboratorio DNA. Struttura 2×2. Ogni 5 giorni produce un Campione DNA che aggiunge immediatamente +3 Punti Ricerca e accelera la prossima ricerca del 20%.',
+  emerge:'Generatore di Emergenza. Quando l\'energia scende a zero, si attiva automaticamente per 1 giorno evitando il blackout. Ricarica in 5 giorni.',
 };
 
 var RESEARCH = [
@@ -848,6 +867,10 @@ var RESEARCH = [
   {id:'reputation',  name:'Marketing Globale',     cost:20, done:false, desc:'Sblocca il livello ★★★★★. Ogni stella vale il doppio sui visitatori.', apply:function(){G.marketingGlobal=true;}},
   {id:'workshops2',  name:'Officine Robotizzate',  cost:15, done:false, desc:'Officine riparano +40% al giorno invece di +25%.', apply:function(){BD.workshop.repairPerDay=40;}},
   {id:'nightsec',    name:'Sorveglianza Notturna', cost:18, done:false, desc:'Torri di guardia e Ranger Station raddoppiano la sicurezza.', apply:function(){BD.watchtower.sec=10;BD.ranger.sec=8;}},
+  {id:'aerialshow',  name:'Spettacolo Aereo Plus', cost:20, done:false, desc:'La Voliera dà +25% visitatori invece di +15%.', apply:function(){if(BD.voliera)BD.voliera._aerialBonus=0.25;}},
+  {id:'aquashow2',   name:'Vasca Potenziata',      cost:25, done:false, desc:'La Vasca Mosasauro dà +35% visitatori invece di +20%.', apply:function(){if(BD.vasca_m)BD.vasca_m._aquaBonus=0.35;}},
+  {id:'dnaboost',    name:'Sintesi DNA Rapida',    cost:22, done:false, desc:'Il Lab. DNA produce campioni ogni 3 giorni invece di 5.', apply:function(){if(BD.dna_lab)BD.dna_lab.sampleInterval=3;}},
+  {id:'emergefast',  name:'Ricarica Emergenza',    cost:15, done:false, desc:'Il Generatore di Emergenza si ricarica in 3 giorni invece di 5.', apply:function(){G._emergeFastCharge=true;}},
 ];
 
 var MISSIONS = [
@@ -868,6 +891,14 @@ var MISSIONS = [
   {name:'Pescatore Antico',   desc:'Costruisci il recinto del Baryonyx.',       reward:7000,  rp:6,  done:false, check:function(){return gridHas(T_BARY);}},
   {name:'Testa d\'Ariete',    desc:'Costruisci il Pachycephalosaurus.',         reward:6000,  rp:4,  done:false, check:function(){return gridHas(T_PACHY);}},
   {name:'Branco di Compy',    desc:'Costruisci il recinto dei Compsognathus.',  reward:4000,  rp:3,  done:false, check:function(){return gridHas(T_COMPY);}},
+  {name:'Il Primo Erbivoro', desc:'Costruisci il recinto dell\'Iguanodonte.',   reward:5000,  rp:3,  done:false, check:function(){return gridHas(T_IGUA);}},
+  {name:'Il Gigante Antico', desc:'Costruisci il recinto dell\'Allosauro.',     reward:9000,  rp:6,  done:false, check:function(){return gridHas(T_ALLO);}},
+  {name:'Spine Dorate',      desc:'Costruisci il recinto del Kentrosaurus.',    reward:6000,  rp:4,  done:false, check:function(){return gridHas(T_KENTRO);}},
+  {name:'Il Cornuto',        desc:'Costruisci il recinto del Ceratosaurus.',    reward:7000,  rp:5,  done:false, check:function(){return gridHas(T_CERATO);}},
+  {name:'Spettacolo Aereo',  desc:'Costruisci la Grande Voliera.',              reward:10000, rp:6,  done:false, check:function(){return gridHas(T_VOLIERA);}},
+  {name:'Vasca delle Stelle',desc:'Costruisci la Vasca del Mosasauro.',         reward:15000, rp:8,  done:false, check:function(){return gridHas(T_VASCA_M);}},
+  {name:'DNA Avanzato',      desc:'Costruisci il Laboratorio DNA.',             reward:12000, rp:7,  done:false, check:function(){return gridHas(T_DNA_LAB);}},
+  {name:'Piano B',           desc:'Costruisci il Generatore di Emergenza.',     reward:8000,  rp:4,  done:false, check:function(){return gridHas(T_EMERGE);}},
   {name:'Collezione Completa',desc:'Costruisci almeno 10 recinti diversi.',     reward:20000, rp:10, done:false, check:function(){return G.enc>=10;}},
   {name:'★★ Due Stelle',      desc:'Raggiungi reputazione ★★.',               reward:10000, rp:5,  done:false, check:function(){return (G.stars||0)>=2;}},
   {name:'★★★ Tre Stelle',     desc:'Raggiungi reputazione ★★★.',              reward:18000, rp:8,  done:false, check:function(){return (G.stars||0)>=3;}},
@@ -1465,6 +1496,60 @@ function drawDinoShape(key,sz,wt){
     ctx.fillStyle='#2a3808';ctx.fillRect(-1,2+breath+cst,2,6);ctx.fillRect(2,2+breath-cst,2,6);
     ctx.fillStyle='#3a5010';ctx.fillRect(3,-2+breath,2,3);
     ctx.restore();
+  } else if(key==='igua'){
+    var is2=Math.sin(wt*2.2)*1.5;
+    ctx.fillStyle='#3a6020';ctx.fillRect(-7,-3+breath,15,8);
+    ctx.save();ctx.translate(8,-4+breath+headBob);ctx.rotate(headBob*0.025);
+    ctx.fillStyle='#4a7028';ctx.fillRect(0,0,8,6);
+    ctx.fillStyle='#ffee88';ctx.fillRect(6,1,2,2);
+    ctx.fillStyle='#cc8822';ctx.fillRect(-1,-4,3,5);
+    ctx.restore();
+    ctx.save();ctx.translate(-7,0+breath);ctx.rotate(tailWag*0.035);ctx.fillStyle='#2a4a18';ctx.fillRect(-7,0,7,4);ctx.restore();
+    ctx.fillStyle='#2a4a18';ctx.fillRect(-6,5+breath+is2,3,5);ctx.fillRect(-1,5+breath-is2,3,5);ctx.fillRect(4,5+breath+is2,3,5);ctx.fillRect(8,5+breath-is2,3,5);
+  } else if(key==='allo'){
+    var als=Math.sin(wt*3.2)*2;
+    ctx.fillStyle='#4a3010';ctx.fillRect(-7,-7+breath,15,10);
+    ctx.save();ctx.translate(8,-8+breath+headBob);ctx.rotate(headBob*0.04);
+    ctx.fillStyle='#5a3a14';ctx.fillRect(0,-1,9,8);
+    ctx.fillStyle='#aa2200';ctx.fillRect(1,-4,4,4);ctx.fillRect(5,-3,3,3);
+    ctx.fillStyle='#ffcc00';ctx.fillRect(7,0,2,2);
+    ctx.fillStyle='#2a1206';ctx.fillRect(1,6,8,2);
+    ctx.restore();
+    ctx.save();ctx.translate(-7,-4+breath);ctx.rotate(tailWag*0.045);ctx.fillStyle='#3a2008';ctx.fillRect(-9,0,9,4);ctx.restore();
+    ctx.fillStyle='#3a2008';ctx.fillRect(5,-2+breath,3,3);
+    ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(-5,-5+breath,2,8);ctx.fillRect(-1,-6+breath,2,9);
+    ctx.fillStyle='#2a1206';ctx.fillRect(-4,3+breath+als,4,8);ctx.fillRect(2,3+breath-als,4,8);
+    ctx.fillStyle='#111';ctx.fillRect(-3,10+breath+als,3,3);ctx.fillRect(3,10+breath-als,3,3);
+  } else if(key==='kentro'){
+    var ks=Math.sin(wt*2)*1.5;
+    ctx.fillStyle='#2a4a22';ctx.fillRect(-9,-2+breath,18,8);
+    ctx.save();ctx.translate(9,-3+breath+headBob*0.5);ctx.fillStyle='#3a5a28';ctx.fillRect(0,0,6,5);ctx.fillStyle='#ffff88';ctx.fillRect(4,1,2,2);ctx.restore();
+    ctx.fillStyle='#999922';
+    var kspX=[-7,-3,1,5];
+    for(var kp=0;kp<kspX.length;kp++){
+      var kh2=kp%2===0?12:9;var kr=Math.sin(wt*1.8+kp*0.9)*1.2;
+      ctx.save();ctx.translate(kspX[kp],-2+breath);ctx.rotate(kr*0.04);
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(2,-kh2);ctx.lineTo(4,0);ctx.closePath();ctx.fill();
+      ctx.restore();
+    }
+    ctx.save();ctx.translate(-9,0+breath);ctx.rotate(tailWag*0.04);
+    ctx.fillStyle='#888811';ctx.fillRect(-8,0,8,3);
+    ctx.beginPath();ctx.moveTo(-10,-4);ctx.lineTo(-8,1);ctx.lineTo(-6,-4);ctx.closePath();ctx.fill();
+    ctx.restore();
+    ctx.fillStyle='#1a3a14';ctx.fillRect(-6,6+breath+ks,4,5);ctx.fillRect(0,6+breath-ks,4,5);ctx.fillRect(5,6+breath+ks,4,5);
+  } else if(key==='cerato'){
+    var cs3=Math.sin(wt*3.5)*2;
+    ctx.fillStyle='#4a1a0a';ctx.fillRect(-5,-6+breath,12,9);
+    ctx.save();ctx.translate(7,-7+breath+headBob);ctx.rotate(headBob*0.04);
+    ctx.fillStyle='#5a2210';ctx.fillRect(0,-1,8,7);
+    ctx.fillStyle='#ddaa00';ctx.fillRect(5,-6,3,7);
+    ctx.fillStyle='#cc3300';ctx.fillRect(2,-4,2,4);ctx.fillRect(7,-3,2,3);
+    ctx.fillStyle='#ff4400';ctx.fillRect(5,0,2,2);
+    ctx.fillStyle='#1a0802';ctx.fillRect(0,5,7,2);
+    ctx.restore();
+    ctx.save();ctx.translate(-5,-3+breath);ctx.rotate(tailWag*0.05);ctx.fillStyle='#2a0a02';ctx.fillRect(-8,0,8,4);ctx.restore();
+    ctx.fillStyle='rgba(200,60,20,0.25)';ctx.fillRect(-3,-4+breath,2,7);ctx.fillRect(1,-5+breath,2,8);
+    ctx.fillStyle='#2a0a02';ctx.fillRect(-2,3+breath+cs3,4,7);ctx.fillRect(4,3+breath-cs3,4,7);
   } else {
     ctx.fillStyle='#4a6820';ctx.fillRect(-5,-5+breath,10,8);ctx.fillRect(5,-7+breath,6,6);ctx.fillRect(-10,-2+breath,6,3);
   }
@@ -1763,8 +1848,100 @@ function drawBuildingTile(c,t,key,px,py,ts){
     c.fillStyle='rgba(255,200,50,'+spk+')';c.beginPath();c.arc(cx+8,py+ts-9,2,0,Math.PI*2);c.fill();
     c.fillStyle='rgba(255,120,20,'+spk+')';c.beginPath();c.arc(cx-6,py+ts-7,1.5,0,Math.PI*2);c.fill();
     neonBorder('#ffb300');
+  }else if(t===T_VOLIERA){
+    // Grande Voliera: struttura in vetro e acciaio, uccelli che volano
+    flatBase('#061018','#00cfff');
+    c.fillStyle='#0a1a28';c.fillRect(px+2,py+2,ts-4,ts-4);
+    // Travi in acciaio
+    c.fillStyle='#336688';
+    c.fillRect(px+2,py+2,2,ts-4);c.fillRect(px+ts-4,py+2,2,ts-4);
+    c.fillRect(px+2,py+2,ts-4,2);c.fillRect(px+2,py+ts-4,ts-4,2);
+    c.fillRect(cx-1,py+2,2,ts-4);c.fillRect(px+2,cy-1,ts-4,2);
+    // Effetto vetro
+    c.fillStyle='rgba(0,180,255,0.08)';c.fillRect(px+4,py+4,ts-8,ts-8);
+    // Uccelli animati
+    var bf=Math.sin(wt*4)*3;var bf2=Math.sin(wt*3+1)*3;
+    c.fillStyle='#aaddff';
+    c.fillRect(cx-8+bf,cy-6,4,2);c.fillRect(cx-6+bf,cy-8,2,4);
+    c.fillRect(cx+4-bf2,cy+4,4,2);c.fillRect(cx+6-bf2,cy+2,2,4);
+    c.fillRect(cx-3+bf,cy+8,3,1);c.fillRect(cx-2+bf,cy+7,1,3);
+    // Glow
+    c.shadowColor='#00cfff';c.shadowBlur=8;c.strokeStyle='#00cfff';c.lineWidth=1.5;
+    c.strokeRect(px+2,py+2,ts-4,ts-4);c.shadowBlur=0;c.lineWidth=1;
+    label('VOLIERA','#00cfff',py+ts-5);
+  }else if(t===T_VASCA_M){
+    // Vasca Mosasauro: grande struttura acquatica con splash animato
+    flatBase('#020e1e','#0088ff');
+    c.fillStyle='#041830';c.fillRect(px+2,py+2,ts-4,ts-4);
+    // Acqua animata
+    var wv=Math.sin(wt*1.5)*2;
+    c.fillStyle='#0a3a6a';c.fillRect(px+3,py+ts/2,ts-6,ts/2-3);
+    c.fillStyle='#0d4a80';c.fillRect(px+3,py+ts/2+wv,ts-6,4);
+    c.fillStyle='rgba(0,120,220,0.4)';c.fillRect(px+3,py+ts/2+wv+2,ts-6,3);
+    // Silhouette Mosasauro che salta
+    var jump=Math.abs(Math.sin(wt*0.8))*12;
+    c.fillStyle='#1a4a6a';
+    c.fillRect(cx-10,py+ts/2-jump,20,5);
+    c.fillRect(cx+8,py+ts/2-jump-3,8,4);
+    c.fillRect(cx-14,py+ts/2-jump+2,6,3);
+    // Splash
+    var sp=Math.abs(Math.sin(wt*0.8+0.2))*0.9;
+    c.fillStyle='rgba(100,200,255,'+sp+')';
+    c.beginPath();c.arc(cx,py+ts/2+1,8,Math.PI,0);c.fill();
+    // Gradinate
+    c.fillStyle='#3a5a7a';c.fillRect(px+2,py+2,ts-4,ts/2-2);
+    for(var gr=0;gr<4;gr++){c.fillStyle=gr%2?'#2a4a6a':'#1a3a5a';c.fillRect(px+2,py+2+gr*(ts/2-4)/4,ts-4,(ts/2-4)/4);}
+    c.shadowColor='#0088ff';c.shadowBlur=12;c.strokeStyle='#0088ff';c.lineWidth=2;
+    c.strokeRect(px+2,py+2,ts-4,ts-4);c.shadowBlur=0;c.lineWidth=1;
+    label('VASCA','#88ccff',py+6);
+  }else if(t===T_DNA_LAB){
+    // Laboratorio DNA: verde biotech, eliche animate
+    flatBase('#020e06','#39ff14');
+    c.fillStyle='#041408';c.fillRect(px+2,py+2,ts-4,ts-4);
+    // Corpo edificio
+    c.fillStyle='#071e0a';c.fillRect(px+4,py+8,ts-8,ts-12);
+    // Simbolo DNA animato al centro
+    var dh=wt*2;
+    for(var di=0;di<6;di++){
+      var dy2=py+10+di*(ts-18)/6;
+      var dx1=cx+Math.cos(dh+di*1.1)*8;
+      var dx2=cx+Math.cos(dh+di*1.1+Math.PI)*8;
+      c.fillStyle='#39ff14';c.shadowColor='#39ff14';c.shadowBlur=4;
+      c.beginPath();c.arc(dx1,dy2,2,0,Math.PI*2);c.fill();
+      c.fillStyle='#00cfff';c.shadowColor='#00cfff';
+      c.beginPath();c.arc(dx2,dy2,2,0,Math.PI*2);c.fill();
+      c.shadowBlur=0;
+      c.strokeStyle='rgba(100,200,100,0.3)';c.lineWidth=1;
+      c.beginPath();c.moveTo(dx1,dy2);c.lineTo(dx2,dy2);c.stroke();c.lineWidth=1;
+    }
+    // Tetto a cupola
+    c.fillStyle='#0a2010';c.beginPath();c.arc(cx,py+9,ts*0.35,Math.PI,0);c.closePath();c.fill();
+    c.shadowColor='#39ff14';c.shadowBlur=10;
+    c.fillStyle='#39ff14';c.font='bold '+Math.max(5,Math.floor(ts*0.13))+'px monospace';
+    c.textAlign='center';c.textBaseline='middle';c.fillText('DNA',cx,py+6);
+    c.shadowBlur=0;
+    neonBorder('#39ff14',2);
+  }else if(t===T_EMERGE){
+    // Generatore di Emergenza: industriale, led stato, lampeggio arancio
+    flatBase('#0e0800','#ff6600');
+    c.fillStyle='#1e1200';c.fillRect(px+3,py+4,ts-6,ts-6);
+    // Carrozzeria metallica
+    c.fillStyle='#2a1e08';c.fillRect(px+5,py+6,ts-10,ts-10);
+    // Pannello ventilazione
+    for(var vt2=0;vt2<4;vt2++){c.fillStyle='#1a1206';c.fillRect(px+6,py+8+vt2*4,ts-12,2);}
+    // Simbolo fulmine
+    c.fillStyle='#ff6600';c.shadowColor='#ff6600';c.shadowBlur=8;
+    c.beginPath();c.moveTo(cx+4,py+7);c.lineTo(cx-3,cy+1);c.lineTo(cx+2,cy+1);c.lineTo(cx-3,py+ts-6);c.lineTo(cx+3,cy-1);c.lineTo(cx-2,cy-1);c.closePath();c.fill();
+    c.shadowBlur=0;
+    // LED stato: verde=carica, rosso=attivo
+    var ledPulse=0.5+0.5*Math.abs(Math.sin(wt*3));
+    var ledCol=G&&G._emergeActive?'rgba(255,50,50,'+ledPulse+')':'rgba(50,255,50,0.8)';
+    c.fillStyle=ledCol;c.shadowColor=ledCol;c.shadowBlur=6;
+    c.beginPath();c.arc(px+ts-8,py+8,3,0,Math.PI*2);c.fill();
+    c.shadowBlur=0;
+    neonBorder('#ff6600');
   }else{
-    var bgMap={9:'#1a1008',10:'#241808',11:'#0e2010',12:'#06101c',13:'#101808',14:'#1a0c04',15:'#101808',16:'#060e14',17:'#060e1e',31:'#141c08',32:'#0e1c0c',33:'#0e1808',34:'#0a1606'};
+    var bgMap={9:'#1a1008',10:'#241808',11:'#0e2010',12:'#06101c',13:'#101808',14:'#1a0c04',15:'#101808',16:'#060e14',17:'#060e1e',31:'#141c08',32:'#0e1c0c',33:'#0e1808',34:'#0a1606',35:'#1a0804',36:'#0a1420',37:'#1a1408',38:'#0e1806',39:'#0e2008',40:'#1a0e04',41:'#0e1a0a',42:'#140804'};
     c.fillStyle=bgMap[t]||'#101810';c.fillRect(px,py,ts,ts);
     c.fillStyle='rgba(57,255,20,0.06)';c.fillRect(px,py,ts,ts);
     c.font=Math.floor(ts*.48)+'px serif';c.textAlign='center';c.textBaseline='middle';
@@ -2145,6 +2322,7 @@ WEAR_EXEMPT[T_EMPTY]=1;WEAR_EXEMPT[T_CLEAR]=1;WEAR_EXEMPT[T_JUNGLE]=1;
 WEAR_EXEMPT[T_ENC_MARKER]=1;WEAR_EXEMPT[T_BLD_MARKER]=1;WEAR_EXEMPT[T_OCEAN]=1;
 // Workshop doesn't decay (it does the repairing)
 WEAR_EXEMPT[T_WORKSHOP]=1;
+WEAR_EXEMPT[T_VOLIERA]=0;WEAR_EXEMPT[T_VASCA_M]=0;WEAR_EXEMPT[T_DNA_LAB]=1;WEAR_EXEMPT[T_EMERGE]=1;
 
 function getBldEnergy(bld){return bld.energy!==undefined?bld.energy:100;}
 function getSingleEnergy(x,y){var k=x+','+y;return singleBldEnergy[k]!==undefined?singleBldEnergy[k]:100;}
@@ -3032,7 +3210,7 @@ function drawMini(){
   miniX.clearRect(0,0,mw,mh);
   for(var j=0;j<MAP_H;j++)for(var i=0;i<MAP_W;i++){
     var t=grid[j][i];
-    miniX.fillStyle=t===T_OCEAN?'#0a2a4a':t===T_JUNGLE?'#0d280a':t===T_CLEAR||t===T_EMPTY?'#2a5a1a':t===T_ROAD||t===T_GATE?'#7a6a44':t===T_ENC_MARKER||t>=DINO_MIN&&t<=DINO_MAX?'#8a4a10':t===T_BLD_MARKER?'#3a5a7a':t===T_VISITOR?'#c8a040':t===T_WORKSHOP?'#8a6020':t===T_JEEP?'#336600':t===T_RANGER?'#4a7a20':t===T_FOUNTAIN||t===T_STATUE||t===T_BENCH?'#3a6a3a':t>=T_GATE?'#3a5a7a':'#1e4212';
+    miniX.fillStyle=t===T_OCEAN?'#0a2a4a':t===T_JUNGLE?'#0d280a':t===T_CLEAR||t===T_EMPTY?'#2a5a1a':t===T_ROAD||t===T_GATE?'#7a6a44':t===T_ENC_MARKER||t>=DINO_MIN&&t<=DINO_MAX?'#8a4a10':t===T_BLD_MARKER?'#3a5a7a':t===T_VISITOR?'#c8a040':t===T_WORKSHOP?'#8a6020':t===T_JEEP?'#336600':t===T_RANGER?'#4a7a20':t===T_FOUNTAIN||t===T_STATUE||t===T_BENCH?'#3a6a3a':t===T_VOLIERA?'#1a4a6a':t===T_VASCA_M?'#0a3a6a':t===T_DNA_LAB?'#0a2a1a':t===T_EMERGE?'#3a2a00':t>=T_GATE?'#3a5a7a':'#1e4212';
     miniX.fillRect(i*tw,j*th,tw+0.5,th+0.5);
   }
   for(var ei=0;ei<enclosures.length;ei++){
@@ -3917,7 +4095,47 @@ function nextDay(){
   if(G.day>10)processDiseases();
   looseDinoDailyDamage();
   rangerCatchDinos();
+  // ── GENERATORE DI EMERGENZA ──
+  if(G.pow<G.powNeed&&gridHas(T_EMERGE)){
+    if(!G._emergeActive&&(G._emergeCooldown||0)===0){
+      G._emergeActive=true;G._emergeDaysLeft=1;
+      log('⚡ Generatore di emergenza attivato! Blackout evitato per oggi.','w');
+    }
+  }
+  if(G._emergeActive){
+    G.pow=Math.max(G.pow,G.powNeed); // copre il fabbisogno per oggi
+    G._emergeDaysLeft=(G._emergeDaysLeft||1)-1;
+    if(G._emergeDaysLeft<=0){
+      G._emergeActive=false;
+      var rechargedays=G._emergeFastCharge?3:5;
+      G._emergeCooldown=rechargedays;
+      log('⚡ Generatore scarico. Ricarica in '+rechargedays+' giorni.','w');
+    }
+  }
+  if((G._emergeCooldown||0)>0){G._emergeCooldown--;
+    if(G._emergeCooldown===0)log('⚡ Generatore di emergenza ricaricato!','g');
+  }
+  // ── LABORATORIO DNA: campioni periodici ──
+  if(gridHas(T_DNA_LAB)){
+    var interval=BD.dna_lab.sampleInterval||5;
+    if(G.day%interval===0){
+      var rpGain=3;G.rp+=rpGain;
+      log('🧫 Lab. DNA: campione raccolto! +'+rpGain+' RP','i');
+    }
+  }
   if(G.day>10)randomEvent();recalc();checkMissions();
+  // ── BONUS VISITA VOLIERA ──
+  if(gridHas(T_VOLIERA)){
+    var aerialPct=BD.voliera._aerialBonus||0.15;
+    var aerialVis=Math.floor(G.vis*aerialPct);
+    G.vis+=aerialVis;
+  }
+  // ── BONUS VASCA MOSASAURO ──
+  if(gridHas(T_VASCA_M)){
+    var aquaPct=BD.vasca_m._aquaBonus||0.20;
+    var aquaVis=Math.floor(G.vis*aquaPct);
+    G.vis+=aquaVis;
+  }
   // Notifica cambio stelle
   if((G.stars||1)>prevStars){
     var sc=starsColor(G.stars);
